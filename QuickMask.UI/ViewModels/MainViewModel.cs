@@ -72,7 +72,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
     public async Task LoadUvImagePathAsync(string path)
     {
-        await _maker.LoadUVImage(path);
+        await _maker.LoadUVGuideImage(path);
         if (_maker.LastError is not null)
         {
             ShowStatus(_maker.LastError);
@@ -81,11 +81,11 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
         if (_maker.Image is null)
         {
-            ShowStatus("UV画像が読み込まれました。ソース画像を開いて選択を開始してください。");
+            ShowStatus("UVガイド画像が読み込まれました。ソース画像を開いて選択を開始してください。");
         }
         else
         {
-            ShowStatus("UV画像が読み込まれました。背景を設定するには、ソース画像を右クリックし、オブジェクトを選択するには左クリックしてください。");
+            ShowStatus("UVガイド画像が読み込まれました。背景を設定するには、ソース画像を右クリックし、オブジェクトを選択するには左クリックしてください。");
         }
     }
 

@@ -49,10 +49,7 @@ public partial class MainWindow : SukiWindow
         var path = e.DataTransfer.TryGetFiles()?.FirstOrDefault()?.TryGetLocalPath();
         if (string.IsNullOrWhiteSpace(path)) return;
 
-        if (viewModel.HasSourceImage)
-            await viewModel.LoadUvImagePathAsync(path);
-        else
-            await viewModel.LoadImagePathAsync(path);
+        await viewModel.LoadImagePathAsync(path);
 
         e.Handled = true;
     }

@@ -12,63 +12,64 @@ public sealed class QuickMask : IDisposable
     public Point BackgroundPoint { get; set; }
 
     private ImageSelector? _imageSelector = null;
-    private ImageSelector? _uvImageSelector = null;
 
     public List<SelectionArea> Selections { get; } = [];
 
     public async Task LoadImage(string filePath)
     {
-        LastError = null;
         var candidate = new Image(filePath);
         await candidate.Load();
-        if (UVImage is not null && !HasMatchingDimensions(candidate, UVImage))
-        {
-            candidate.Dispose();
-            LastError = "テクスチャ画像とUV画像の解像度が一致していません。";
-            return;
-        }
 
         Selections.Clear();
-        _imageSelector?.Dispose();
-        _imageSelector = null;
+
+        DisposeImageSelector(ref _imageSelector);
+
         Image?.Dispose();
         Image = candidate;
     }
-    public async Task LoadUVImage(string filePath)
+    public async Task LoadUVGuideImage(string filePath)
     {
-        LastError = null;
         var candidate = new Image(filePath);
         await candidate.Load();
+
         if (Image is not null && !HasMatchingDimensions(Image, candidate))
         {
             candidate.Dispose();
-            LastError = "テクスチャ画像とUV画像の解像度が一致していません。";
+            LastError = "テクスチャ画像とUVガイド画像の解像度が一致していません。";
             return;
         }
 
-        Selections.Clear();
-        _uvImageSelector?.Dispose();
-        _uvImageSelector = null;
-        _imageSelector?.Dispose();
-        _imageSelector = null;
+        DisposeImageSelector(ref _imageSelector);
+
         UVImage?.Dispose();
         UVImage = candidate;
     }
-
-    public bool Select(Point point, bool fromUv = false, bool erase = false)
+    public void UnloadUVGuideImage()
     {
-        var image = fromUv ? UVImage : Image;
-        if (image == null) return false;
+        DisposeImageSelector(ref _imageSelector);
 
-        var selector = fromUv
-            ? _uvImageSelector ??= new ImageSelector(image, true)
-            : _imageSelector ??= new ImageSelector(image, guideImage: UVImage);
+        UVImage?.Dispose();
+        UVImage = null;
+    }
+    private static void DisposeImageSelector(ref ImageSelector? selector)
+    {
+        selector?.Dispose();
+        selector = null;
+    }
+
+    public bool Select(Point point, bool erase = false)
+    {
+        if (Image == null) return false;
+
+        var selector = _imageSelector ??= new ImageSelector(Image, guideImage: UVImage);
         selector.Initialize(BackgroundPoint);
 
         var selection = selector.Select(point);
         if (selection == null) return false;
+
         selection.IsErase = erase;
         Selections.Add(selection);
+
         return true;
     }
 
@@ -96,27 +97,25 @@ public sealed class QuickMask : IDisposable
     private static bool HasMatchingDimensions(Image first, Image second) =>
         first.Width == second.Width && first.Height == second.Height;
 
-    public SkiaSharp.SKBitmap GenerateMask() => MaskGenerator.Generate(MergeSelections(), Image?.Width ?? UVImage?.Width ?? 0, Image?.Height ?? UVImage?.Height ?? 0);
+    public SkiaSharp.SKBitmap GenerateMask() => MaskGenerator.Generate(MergeSelections(), Image?.Width ?? 0, Image?.Height ?? 0);
 
-    public void SaveMask(string filePath,
-        SkiaSharp.SKEncodedImageFormat format = SkiaSharp.SKEncodedImageFormat.Png,
-        int quality = 100)
+    public void SaveMask(string filePath, SkiaSharp.SKEncodedImageFormat format = SkiaSharp.SKEncodedImageFormat.Png, int quality = 100)
     {
-        var width = Image?.Width ?? UVImage?.Width ?? 0;
-        var height = Image?.Height ?? UVImage?.Height ?? 0;
+        var width = Image?.Width ??  0;
+        var height = Image?.Height ??  0;
         MaskGenerator.Save(MergeSelections(), width, height, filePath, format, quality);
     }
 
     public void Dispose()
     {
-        _imageSelector?.Dispose();
-        _uvImageSelector?.Dispose();
+        DisposeImageSelector(ref _imageSelector);
+
         Image?.Dispose();
-        UVImage?.Dispose();
-        _imageSelector = null;
-        _uvImageSelector = null;
         Image = null;
+
+        UVImage?.Dispose();
         UVImage = null;
+
         GC.SuppressFinalize(this);
     }
 }

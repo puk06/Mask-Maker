@@ -19,24 +19,16 @@ public sealed class ImageSelector(Image sourceImage, bool isUv = false, Image? g
     private bool _initialized;
     private bool _disposed;
 
-    public void AddBackgroundPoint(Point point)
-    {
-        _backgroundPoint = point;
-        _initialized = false;
-    }
-
-    public void Initialize() => Initialize(_backgroundPoint);
-
-    public void Initialize(Point backgroundPoint)
+    public bool Initialize(Point backgroundPoint)
     {
         var image = GetImage();
-        ValidatePoint(backgroundPoint, image);
+        if (!ValidatePoint(backgroundPoint, image)) return false;
 
         if (_guideImage is not null && (_guideImage.Width != image.Width || _guideImage.Height != image.Height))
             throw new ArgumentException("The guide image dimensions must match the source image.");
 
         // Selecting several objects with the same background must not rebuild this mask.
-        if (_initialized && _backgroundPoint == backgroundPoint) return;
+        if (_initialized && _backgroundPoint == backgroundPoint) return true;
 
         _backgroundPoint = backgroundPoint;
         _selectablePixels = _isUv ? BuildUvSelectablePixels(image, backgroundPoint) : BuildImageSelectablePixels(image, backgroundPoint);
@@ -45,6 +37,8 @@ public sealed class ImageSelector(Image sourceImage, bool isUv = false, Image? g
         _queue = new int[image.PixelCount];
         _visitToken = 0;
         _initialized = true;
+
+        return true;
     }
 
     private static byte[] BuildImageSelectablePixels(Image image, Point backgroundPoint)
@@ -112,8 +106,7 @@ public sealed class ImageSelector(Image sourceImage, bool isUv = false, Image? g
         }
     }
 
-    private static void TryVisitBackground(int index, ReadOnlySpan<SKColor> pixels,
-        SKColor backgroundColor, byte[] visited, int[] queue, ref int tail)
+    private static void TryVisitBackground(int index, ReadOnlySpan<SKColor> pixels, SKColor backgroundColor, byte[] visited, int[] queue, ref int tail)
     {
         if (visited[index] != 0 || !pixels[index].Equals(backgroundColor)) return;
 
@@ -125,7 +118,7 @@ public sealed class ImageSelector(Image sourceImage, bool isUv = false, Image? g
     {
         var image = GetImage();
         if (!_initialized || _selectablePixels is null || _visitMarks is null || _queue is null) return null;
-        if (point.X < 0 || point.X >= image.Width || point.Y < 0 || point.Y >= image.Height) return null;
+        if (!ValidatePoint(point, image)) return null;
 
         var startIndex = PixelUtils.GetPixelIndex(point.X, point.Y, image.Width);
         if (_selectablePixels[startIndex] == 0) return null;
@@ -155,8 +148,7 @@ public sealed class ImageSelector(Image sourceImage, bool isUv = false, Image? g
         return selected;
     }
 
-    private static void TryVisitObject(int index, byte[] selectable, int[] marks, int token,
-        BitArray selected, int[] queue, ref int tail)
+    private static void TryVisitObject(int index, byte[] selectable, int[] marks, int token, BitArray selected, int[] queue, ref int tail)
     {
         if (selectable[index] == 0 || marks[index] == token) return;
         marks[index] = token;
@@ -176,10 +168,11 @@ public sealed class ImageSelector(Image sourceImage, bool isUv = false, Image? g
 
     private Image GetImage() => _sourceImage ?? throw new ObjectDisposedException(nameof(ImageSelector));
 
-    private static void ValidatePoint(Point point, Image image)
+    private static bool ValidatePoint(Point point, Image image)
     {
         if (point.X < 0 || point.X >= image.Width || point.Y < 0 || point.Y >= image.Height)
-            throw new ArgumentOutOfRangeException(nameof(point));
+            return false;
+        return true;
     }
 
     public void Dispose()
