@@ -26,6 +26,9 @@ public sealed class QuickMask : IDisposable
 
         Image?.Dispose();
         Image = candidate;
+
+        UVImage?.Dispose();
+        UVImage = candidate;
     }
     public async Task LoadUVGuideImage(string filePath)
     {
