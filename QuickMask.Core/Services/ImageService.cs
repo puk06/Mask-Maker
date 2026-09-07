@@ -1,6 +1,6 @@
 using SkiaSharp;
 
-namespace MaskMaker.Core.Services;
+namespace QuickMask.Core.Services;
 
 public static class ImageService
 {

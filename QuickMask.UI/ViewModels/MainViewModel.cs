@@ -1,17 +1,17 @@
 using System.Collections.ObjectModel;
 using Avalonia.Media.Imaging;
-using MaskMaker.Core.Models;
-using MaskMaker.Core.Utils;
+using QuickMask.Core.Models;
+using QuickMask.Core.Utils;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using SkiaSharp;
 
-namespace MaskMaker.UI.ViewModels;
+namespace QuickMask.UI.ViewModels;
 
 public partial class MainViewModel : ReactiveObject, IDisposable
 {
     private readonly Services.IFileDialogService _dialogs;
-    private readonly Core.Services.MaskMaker _maker = new();
+    private readonly Core.Services.QuickMask _maker = new();
     private bool _disposed = false;
 
     [Reactive] public partial Bitmap? SourcePreview { get; private set; }

@@ -1,4 +1,4 @@
-namespace MaskMaker.UI.Services;
+namespace QuickMask.UI.Services;
 
 public interface IFileDialogService
 {

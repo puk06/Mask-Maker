@@ -36,7 +36,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/AvaloniaUI/angle/
 
-**Referenced by:** Avalonia.Desktop, Avalonia.Win32, MaskMaker.UI
+**Referenced by:** Avalonia.Desktop, Avalonia.Win32, QuickMask.UI
 
 ### License
 
@@ -81,7 +81,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/AvaloniaUI/Avalonia.BuildServices
 
-**Referenced by:** Avalonia, Avalonia.Controls.ColorPicker, Avalonia.Controls.DataGrid, Avalonia.Desktop, Avalonia.FreeDesktop, Avalonia.FreeDesktop.AtSpi, Avalonia.HarfBuzz, Avalonia.Native, Avalonia.Skia, Avalonia.Themes.Fluent, Avalonia.Themes.Simple, Avalonia.Win32, Avalonia.X11, MaskMaker.UI, Material.Icons.Avalonia, ReactiveUI.Avalonia, ReactiveUI.Primitives.Avalonia, SukiUI
+**Referenced by:** Avalonia, Avalonia.Controls.ColorPicker, Avalonia.Controls.DataGrid, Avalonia.Desktop, Avalonia.FreeDesktop, Avalonia.FreeDesktop.AtSpi, Avalonia.HarfBuzz, Avalonia.Native, Avalonia.Skia, Avalonia.Themes.Fluent, Avalonia.Themes.Simple, Avalonia.Win32, Avalonia.X11, QuickMask.UI, Material.Icons.Avalonia, ReactiveUI.Avalonia, ReactiveUI.Primitives.Avalonia, SukiUI
 
 ### License
 
@@ -115,7 +115,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/AvaloniaUI/Avalonia.Controls.DataGrid
 
-**Referenced by:** MaskMaker.UI, SukiUI
+**Referenced by:** QuickMask.UI, SukiUI
 
 ### License
 
@@ -150,7 +150,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/AvaloniaUI/Avalonia/
 
-**Referenced by:** Avalonia, Avalonia.Controls.ColorPicker, Avalonia.Controls.DataGrid, Avalonia.Desktop, Avalonia.FreeDesktop, Avalonia.FreeDesktop.AtSpi, Avalonia.HarfBuzz, Avalonia.Native, Avalonia.Skia, Avalonia.Themes.Fluent, Avalonia.Themes.Simple, Avalonia.Win32, Avalonia.X11, MaskMaker.UI, Material.Icons.Avalonia, ReactiveUI.Avalonia, ReactiveUI.Primitives.Avalonia, SukiUI
+**Referenced by:** Avalonia, Avalonia.Controls.ColorPicker, Avalonia.Controls.DataGrid, Avalonia.Desktop, Avalonia.FreeDesktop, Avalonia.FreeDesktop.AtSpi, Avalonia.HarfBuzz, Avalonia.Native, Avalonia.Skia, Avalonia.Themes.Fluent, Avalonia.Themes.Simple, Avalonia.Win32, Avalonia.X11, QuickMask.UI, Material.Icons.Avalonia, ReactiveUI.Avalonia, ReactiveUI.Primitives.Avalonia, SukiUI
 
 ### License
 
@@ -530,7 +530,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/AvaloniaUtils/Material.Icons.Avalonia
 
-**Referenced by:** MaskMaker.UI
+**Referenced by:** QuickMask.UI
 
 ### License
 
@@ -593,7 +593,7 @@ The MIT license applies to all non-font and non-icon files.
 
 **Repository:** https://github.com/kekekeks/MicroCom
 
-**Referenced by:** Avalonia, Avalonia.Controls.ColorPicker, Avalonia.Controls.DataGrid, Avalonia.Desktop, Avalonia.FreeDesktop, Avalonia.FreeDesktop.AtSpi, Avalonia.HarfBuzz, Avalonia.Native, Avalonia.Skia, Avalonia.Themes.Fluent, Avalonia.Themes.Simple, Avalonia.Win32, Avalonia.X11, MaskMaker.UI, Material.Icons.Avalonia, ReactiveUI.Avalonia, ReactiveUI.Primitives.Avalonia, SukiUI
+**Referenced by:** Avalonia, Avalonia.Controls.ColorPicker, Avalonia.Controls.DataGrid, Avalonia.Desktop, Avalonia.FreeDesktop, Avalonia.FreeDesktop.AtSpi, Avalonia.HarfBuzz, Avalonia.Native, Avalonia.Skia, Avalonia.Themes.Fluent, Avalonia.Themes.Simple, Avalonia.Win32, Avalonia.X11, QuickMask.UI, Material.Icons.Avalonia, ReactiveUI.Avalonia, ReactiveUI.Primitives.Avalonia, SukiUI
 
 ### License
 
@@ -627,7 +627,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/kikipoulet/SukiUI
 
-**Referenced by:** MaskMaker.UI
+**Referenced by:** QuickMask.UI
 
 ### License
 
@@ -661,7 +661,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/reactiveui/Primitives
 
-**Referenced by:** MaskMaker.UI, ReactiveUI, ReactiveUI.Avalonia, ReactiveUI.Core, ReactiveUI.Primitives, ReactiveUI.Primitives.Avalonia, ReactiveUI.Primitives.Core, Splat, Splat.Builder, Splat.Core, Splat.Logging
+**Referenced by:** QuickMask.UI, ReactiveUI, ReactiveUI.Avalonia, ReactiveUI.Core, ReactiveUI.Primitives, ReactiveUI.Primitives.Avalonia, ReactiveUI.Primitives.Core, Splat, Splat.Builder, Splat.Core, Splat.Logging
 
 ### License
 
@@ -695,7 +695,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/reactiveui/reactiveui
 
-**Referenced by:** MaskMaker.UI, ReactiveUI, ReactiveUI.Avalonia
+**Referenced by:** QuickMask.UI, ReactiveUI, ReactiveUI.Avalonia
 
 ### License
 
@@ -731,7 +731,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/reactiveui/ReactiveUI.Avalonia
 
-**Referenced by:** MaskMaker.UI
+**Referenced by:** QuickMask.UI
 
 ### License
 
@@ -765,7 +765,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/reactiveui/reactiveui.sourcegenerators
 
-**Referenced by:** MaskMaker.UI, ReactiveUI.SourceGenerators
+**Referenced by:** QuickMask.UI, ReactiveUI.SourceGenerators
 
 ### License
 
@@ -837,7 +837,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/reactiveui/splat
 
-**Referenced by:** MaskMaker.UI, ReactiveUI, ReactiveUI.Avalonia, ReactiveUI.Core, Splat, Splat.Builder, Splat.Logging
+**Referenced by:** QuickMask.UI, ReactiveUI, ReactiveUI.Avalonia, ReactiveUI.Core, Splat, Splat.Builder, Splat.Logging
 
 ### License
 
@@ -873,7 +873,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/SKProCH/Material.Icons
 
-**Referenced by:** MaskMaker.UI, Material.Icons.Avalonia
+**Referenced by:** QuickMask.UI, Material.Icons.Avalonia
 
 ### License
 
@@ -907,7 +907,7 @@ SOFTWARE.
 
 **Repository:** https://github.com/tmds/Tmds.DBus
 
-**Referenced by:** Avalonia.Desktop, Avalonia.FreeDesktop, Avalonia.X11, MaskMaker.UI
+**Referenced by:** Avalonia.Desktop, Avalonia.FreeDesktop, Avalonia.X11, QuickMask.UI
 
 ### License
 
@@ -942,7 +942,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **Repository:** https://github.com/zzzprojects/System.Linq.Dynamic.Core
 
-**Referenced by:** MaskMaker.UI, SukiUI
+**Referenced by:** QuickMask.UI, SukiUI
 
 ### License
 
@@ -1156,7 +1156,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 **Repository:** https://go.microsoft.com/fwlink/?linkid=868515
 
-**Referenced by:** Avalonia.Desktop, Avalonia.HarfBuzz, Avalonia.Skia, Avalonia.X11, HarfBuzzSharp, MaskMaker.Core, MaskMaker.UI, SkiaSharp, SukiUI
+**Referenced by:** Avalonia.Desktop, Avalonia.HarfBuzz, Avalonia.Skia, Avalonia.X11, HarfBuzzSharp, QuickMask.Core, QuickMask.UI, SkiaSharp, SukiUI
 
 ### License
 

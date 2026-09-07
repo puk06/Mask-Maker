@@ -1,10 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
-using MaskMaker.UI.ViewModels;
+using QuickMask.UI.ViewModels;
 using SukiUI.Controls;
 
-namespace MaskMaker.UI.Views;
+namespace QuickMask.UI.Views;
 
 public partial class MainWindow : SukiWindow
 {

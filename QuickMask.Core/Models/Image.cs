@@ -1,7 +1,7 @@
-using MaskMaker.Core.Services;
+using QuickMask.Core.Services;
 using SkiaSharp;
 
-namespace MaskMaker.Core.Models;
+namespace QuickMask.Core.Models;
 
 public class Image(string filePath) : IDisposable
 {

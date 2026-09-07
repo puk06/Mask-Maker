@@ -1,10 +1,10 @@
-using MaskMaker.Core.Models;
-using MaskMaker.Core.Utils;
+using QuickMask.Core.Models;
+using QuickMask.Core.Utils;
 using ReactiveUI;
 using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 
-namespace MaskMaker.UI.ViewModels;
+namespace QuickMask.UI.ViewModels;
 
 public partial class SelectionAreaViewModel : ReactiveObject
 {

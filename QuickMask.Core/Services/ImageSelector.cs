@@ -1,9 +1,9 @@
 using System.Collections;
-using MaskMaker.Core.Models;
-using MaskMaker.Core.Utils;
+using QuickMask.Core.Models;
+using QuickMask.Core.Utils;
 using SkiaSharp;
 
-namespace MaskMaker.Core.Services;
+namespace QuickMask.Core.Services;
 
 /// <summary>Finds four-connected objects in an image.</summary>
 public sealed class ImageSelector(Image sourceImage, bool isUv = false, Image? guideImage = null) : IDisposable

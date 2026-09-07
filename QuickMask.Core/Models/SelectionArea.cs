@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace MaskMaker.Core.Models;
+namespace QuickMask.Core.Models;
 
 public class SelectionArea(int width, int height)
 {

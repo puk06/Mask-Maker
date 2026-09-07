@@ -1,11 +1,11 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using MaskMaker.UI.Services;
-using MaskMaker.UI.ViewModels;
-using MaskMaker.UI.Views;
+using QuickMask.UI.Services;
+using QuickMask.UI.ViewModels;
+using QuickMask.UI.Views;
 
-namespace MaskMaker.UI;
+namespace QuickMask.UI;
 
 public partial class App : Application
 {

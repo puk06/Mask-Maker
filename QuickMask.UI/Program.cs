@@ -1,7 +1,7 @@
 using Avalonia;
 using ReactiveUI.Avalonia;
 
-namespace MaskMaker.UI;
+namespace QuickMask.UI;
 
 internal static class Program
 {

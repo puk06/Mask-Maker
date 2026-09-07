@@ -1,10 +1,10 @@
 using System.Collections;
-using MaskMaker.Core.Models;
-using MaskMaker.Core.Utils;
+using QuickMask.Core.Models;
+using QuickMask.Core.Utils;
 
-namespace MaskMaker.Core.Services;
+namespace QuickMask.Core.Services;
 
-public sealed class MaskMaker : IDisposable
+public sealed class QuickMask : IDisposable
 {
     public Image? Image { get; private set; }
     public Image? UVImage { get; private set; }

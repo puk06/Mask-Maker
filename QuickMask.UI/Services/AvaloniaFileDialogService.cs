@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 
-namespace MaskMaker.UI.Services;
+namespace QuickMask.UI.Services;
 
 public sealed class AvaloniaFileDialogService(Window owner) : IFileDialogService
 {

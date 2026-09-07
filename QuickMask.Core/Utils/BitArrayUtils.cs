@@ -1,6 +1,6 @@
 using System.Collections;
 
-namespace MaskMaker.Core.Utils;
+namespace QuickMask.Core.Utils;
 
 public static class BitArrayUtils
 {

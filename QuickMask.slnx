@@ -1,0 +1,4 @@
+<Solution>
+	<Project Path="QuickMask.Core/QuickMask.Core.csproj"/>
+	<Project Path="QuickMask.UI/QuickMask.UI.csproj"/>
+</Solution>
