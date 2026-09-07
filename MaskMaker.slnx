@@ -1,0 +1,4 @@
+<Solution>
+	<Project Path="MaskMaker.Core/MaskMaker.Core.csproj"/>
+	<Project Path="MaskMaker.UI/MaskMaker.UI.csproj"/>
+</Solution>

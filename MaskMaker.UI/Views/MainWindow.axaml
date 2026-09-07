@@ -1,0 +1,117 @@
+<sukiUi:SukiWindow xmlns="https://github.com/avaloniaui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:vm="using:MaskMaker.UI.ViewModels"
+	xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
+	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	x:Class="MaskMaker.UI.Views.MainWindow"
+	x:DataType="vm:MainViewModel"
+	DragDrop.AllowDrop="True"
+	DragDrop.DragOver="WindowDragOver"
+	DragDrop.Drop="WindowDrop"
+	Title="{Binding WindowTitle}"
+	Width="1440"
+	Height="820"
+	MinWidth="1060"
+	MinHeight="700"
+	FontFamily="Inter">
+
+	<Grid Margin="24" RowSpacing="16">
+		<Grid Grid.Row="0" ColumnDefinitions="*,340" ColumnSpacing="16">
+			<Grid Grid.Column="0" RowDefinitions="*,Auto" RowSpacing="16">
+				<Grid ColumnDefinitions="*,*" ColumnSpacing="16">
+					<sukiUi:GlassCard Grid.Column="0">
+						<Grid RowDefinitions="Auto,*">
+							<Grid ColumnDefinitions="*,Auto">
+								<TextBlock Text="テクスチャ画像" Foreground="#F5F5F5" FontSize="12" FontWeight="Bold" />
+								<Border Grid.Column="1" Background="#303030" CornerRadius="6" Padding="10,4">
+									<TextBlock Text="左クリックで選択" Foreground="#D7C2FF" FontSize="10" FontWeight="SemiBold" />
+								</Border>
+							</Grid>
+
+							<Border Grid.Row="1" Background="#121212" CornerRadius="6" Margin="0,12,0,0" PointerPressed="SourcePointerPressed">
+								<Image Source="{Binding SourcePreview}" Stretch="Uniform" />
+							</Border>
+						</Grid>
+					</sukiUi:GlassCard>
+
+					<sukiUi:GlassCard Grid.Column="1">
+						<Grid RowDefinitions="Auto,*">
+							<Grid ColumnDefinitions="*,Auto">
+								<TextBlock Text="生成後のマスク" Foreground="#F5F5F5" FontSize="12" FontWeight="Bold" />
+								<Border Grid.Column="1" Background="#263A2B" CornerRadius="6" Padding="10,4">
+									<TextBlock Text="ライブプレビュー" Foreground="#A5D6A7" FontSize="10" FontWeight="SemiBold" />
+								</Border>
+							</Grid>
+							<Border Grid.Row="1" Background="#121212" CornerRadius="6" Margin="0,12,0,0">
+								<Image Source="{Binding MaskPreview}" Stretch="Uniform" />
+							</Border>
+						</Grid>
+					</sukiUi:GlassCard>
+				</Grid>
+
+				<sukiUi:GlassCard Grid.Row="1">
+					<TextBlock Text="{Binding Status}" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+				</sukiUi:GlassCard>
+			</Grid>
+
+			<Grid Grid.Column="1" RowDefinitions="Auto,*,Auto,Auto" RowSpacing="14">
+				<Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+					<Button Classes="Flat" Content="画像を読み込む" Command="{Binding OpenImageCommand}" />
+					<Button Grid.Column="1" Classes="Outlined" Content="UVを読み込む" Command="{Binding OpenUvImageCommand}" />
+				</Grid>
+
+				<sukiUi:GlassCard Grid.Row="1">
+					<Grid RowDefinitions="Auto,*" RowSpacing="10">
+						<Grid ColumnDefinitions="*,Auto">
+							<Grid RowDefinitions="Auto,Auto">
+								<TextBlock Text="選択エリア" FontSize="12" FontWeight="Bold" Foreground="#F5F5F5" />
+								<TextBlock Grid.Row="1" Text="順番がマスク結果に反映されます" FontSize="11" Foreground="#909090" />
+							</Grid>
+							<TextBlock Grid.Column="1" Text="{Binding SelectionAreas.Count, StringFormat='{}{0:N0}'}" FontSize="20" FontWeight="Bold" Foreground="#8AB4F8" VerticalAlignment="Center" />
+						</Grid>
+						
+						<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" MinHeight="180">
+							<ItemsControl ItemsSource="{Binding SelectionAreas}">
+								<ItemsControl.ItemsPanel>
+									<ItemsPanelTemplate>
+										<StackPanel Spacing="10"/>
+									</ItemsPanelTemplate>
+								</ItemsControl.ItemsPanel>
+
+								<ItemsControl.ItemTemplate>
+									<DataTemplate x:DataType="vm:SelectionAreaViewModel">
+										<sukiUi:GlassCard Classes="Primary" IsInteractive="True">
+											<sukiUi:GlassCard.ContextMenu>
+												<ContextMenu>
+													<MenuItem Header="選択 / 消去エリアの切り換え" Command="{Binding ToggleEraseCommand}" />
+													<MenuItem Header="削除" Command="{Binding RemoveCommand}" />
+												</ContextMenu>
+											</sukiUi:GlassCard.ContextMenu>
+
+											<Grid ColumnDefinitions="Auto,10,*,Auto">
+												<CheckBox IsChecked="{Binding IsEnabled}" />
+
+												<Grid Grid.Column="2" RowDefinitions="Auto,Auto">
+													<TextBlock Text="{Binding TypeText}" FontSize="16" FontWeight="Bold" Foreground="#F5F5F5" />
+													<TextBlock Grid.Row="1" Text="{Binding PixelCount, StringFormat='{}{0:N0} ピクセル'}" FontSize="11" Foreground="#909090" />
+												</Grid>
+
+												<Grid Grid.Column="3" ColumnDefinitions="Auto,Auto" ColumnSpacing="3">
+													<Button Content="{materialIcons:MaterialIconExt Kind=ArrowUp}" FontSize="16" Command="{Binding MoveUpCommand}" />
+													<Button Grid.Column="1" Content="{materialIcons:MaterialIconExt Kind=ArrowDown}" FontSize="16" Command="{Binding MoveDownCommand}" />
+												</Grid>
+											</Grid>
+										</sukiUi:GlassCard>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</ScrollViewer>
+					</Grid>
+				</sukiUi:GlassCard>
+
+				<Button Grid.Row="2" Classes="Outlined" Content="選択エリアをクリア" HorizontalAlignment="Stretch" Command="{Binding ClearSelectionsCommand}" />
+				<Button Grid.Row="3" Classes="Flat Large" Content="マスクを出力" HorizontalAlignment="Stretch" Command="{Binding SaveMaskCommand}" />
+			</Grid>
+		</Grid>
+	</Grid>
+</sukiUi:SukiWindow>
