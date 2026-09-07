@@ -21,7 +21,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     [Reactive] public partial Bitmap? MaskPreview { get; private set; }
     public ObservableCollection<SelectionAreaViewModel> SelectionAreas { get; } = [];
     [Reactive] public partial string Status { get; set; } = "画像を開いて選択を開始してください。";
-    [Reactive] public partial string WindowTitle { get; set; } = "QuickMask";
+    [Reactive] public partial string WindowTitle { get; set; } = string.Empty;
     [Reactive] public partial int BackgroundX { get; set; }
     [Reactive] public partial int BackgroundY { get; set; }
 
@@ -37,6 +37,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         OpenUvImageCommand = ReactiveCommand.CreateFromTask(OpenUvImageAsync);
         SaveMaskCommand = ReactiveCommand.CreateFromTask(SaveMaskAsync);
         ClearSelectionsCommand = ReactiveCommand.Create(ClearSelections);
+
+        UpdateWindowTitle();
     }
 
     private async Task OpenImageAsync()
