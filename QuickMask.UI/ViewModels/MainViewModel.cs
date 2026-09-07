@@ -10,6 +10,8 @@ namespace QuickMask.UI.ViewModels;
 
 public partial class MainViewModel : ReactiveObject, IDisposable
 {
+    public const string CurrentVersion = "v1.0.0";
+
     private readonly Services.IFileDialogService _dialogs;
     private readonly Core.Services.QuickMask _maker = new();
     private bool _disposed = false;
@@ -19,7 +21,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     [Reactive] public partial Bitmap? MaskPreview { get; private set; }
     public ObservableCollection<SelectionAreaViewModel> SelectionAreas { get; } = [];
     [Reactive] public partial string Status { get; set; } = "画像を開いて選択を開始してください。";
-    [Reactive] public partial string WindowTitle { get; set; } = "Mask Maker";
+    [Reactive] public partial string WindowTitle { get; set; } = "QuickMask";
     [Reactive] public partial int BackgroundX { get; set; }
     [Reactive] public partial int BackgroundY { get; set; }
 
@@ -239,9 +241,9 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     {
         var mask = _maker.MergeSelections();
         if (SelectionAreas.Count == 0)
-            WindowTitle = "Mask Maker";
+            WindowTitle = $"QuickMask {CurrentVersion}";
         else
-            WindowTitle = $"Mask Maker - {SelectionAreas.Count:N0}個の選択エリア (総選択ピクセル数: {BitArrayUtils.GetCount(mask, true):N0})";
+            WindowTitle = $"QuickMask {CurrentVersion} - {SelectionAreas.Count:N0}個の選択エリア (総選択ピクセル数: {BitArrayUtils.GetCount(mask, true):N0})";
     }
 
     private void ShowStatus(string message)
