@@ -101,7 +101,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
             RefreshMaskPreview();
 
             var areaType = erase ? "消去エリア" : "選択エリア";
-            ShowStatus($"{areaType}を追加しました ({point.Value.X}, {point.Value.Y})。合計: {SelectionAreas.Count}");
+            ShowStatus($"{areaType}を追加しました ({point.Value.X}, {point.Value.Y})。合計: {SelectionAreas.Count}個の選択エリア");
         }
         else
         {
