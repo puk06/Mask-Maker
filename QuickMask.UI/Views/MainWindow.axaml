@@ -9,6 +9,7 @@
 	DragDrop.DragOver="WindowDragOver"
 	DragDrop.Drop="WindowDrop"
 	Title="{Binding WindowTitle}"
+	Icon="avares://QuickMask/Assets/Internal/SoftwareIcon.png"
 	Width="1440"
 	Height="820"
 	MinWidth="1060"
