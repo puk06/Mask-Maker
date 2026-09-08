@@ -12,7 +12,7 @@ namespace QuickMask.UI.ViewModels;
 
 public partial class MainViewModel : ReactiveObject, IDisposable
 {
-    public const string CurrentVersion = "v1.0.0";
+    public const string CurrentVersion = "1.0.0";
 
     private readonly Services.IFileDialogService _dialogs;
     private readonly Core.Services.QuickMask _maker = new();
@@ -39,7 +39,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
         OpenImageCommand = ReactiveCommand.CreateFromTask(OpenImageAsync);
         OpenUvImageCommand = ReactiveCommand.CreateFromTask(OpenUvImageAsync);
-        UnloadUvImageCommand = ReactiveCommand.Create(_maker.UnloadUVGuideImage);
+        UnloadUvImageCommand = ReactiveCommand.Create(UnloadUvImage);
         SaveMaskCommand = ReactiveCommand.CreateFromTask(SaveMaskAsync);
         ClearSelectionsCommand = ReactiveCommand.Create(ClearSelections);
 
@@ -58,14 +58,15 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         var result = await _maker.LoadImage(path);
         if (result.IsError)
         {
-            ShowStatus(result.FirstError.Description);
+            ShowStatus(Localizer.Instance[result.FirstError.Description]);
             return;
         }
 
         SelectionAreas.Clear();
-        UpdateWindowTitle();
         SetSourcePreview(path);
         RefreshMaskPreview();
+
+        UpdateWindowTitle();
     }
 
     private async Task OpenUvImageAsync()
@@ -78,20 +79,13 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     public async Task LoadUvImagePathAsync(string path)
     {
         var result = await _maker.LoadUVGuideImage(path);
-        if (result.IsError)
-        {
-            ShowStatus(result.FirstError.Description);
-            return;
-        }
+        if (result.IsError) ShowStatus(Localizer.Instance[result.FirstError.Description]);
+    }
 
-        if (_maker.ImageLoaded)
-        {
-            ShowStatus("UVガイド画像が読み込まれました。ソース画像を開いて選択を開始してください。");
-        }
-        else
-        {
-            ShowStatus("UVガイド画像が読み込まれました。背景を設定するには、ソース画像を右クリックし、オブジェクトを選択するには左クリックしてください。");
-        }
+    public void UnloadUvImage()
+    {
+        _maker.UnloadUVGuideImage();
+        UpdateWindowTitle();
     }
 
     public void SelectAt(double x, double y, double displayWidth, double displayHeight, bool erase = false)
@@ -103,7 +97,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         var result = _maker.Select(point.Value, erase: erase);
         if (result.IsError)
         {
-            ShowStatus(result.FirstError.Description);
+            ShowStatus(Localizer.Instance[result.FirstError.Description]);
             return;
         }
 
@@ -111,7 +105,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         RefreshMaskPreview();
 
         var areaType = erase ? Localizer.Instance[Loc.SelectionArea.AreaType.Eraser] : Localizer.Instance[Loc.SelectionArea.AreaType.Selection];
-        ShowStatus($"{areaType}を追加しました ({point.Value.X}, {point.Value.Y})。合計: {SelectionAreas.Count}個の選択エリア");
+
+        ShowStatus(Localizer.Instance.Get(Loc.Success.SelectionArea.Added, [areaType, point.Value.X.ToString(), point.Value.Y.ToString(), SelectionAreas.Count.ToString()]));
     }
 
     public void SetBackgroundAt(double x, double y, double displayWidth, double displayHeight)
@@ -122,7 +117,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         BackgroundX = point.Value.X;
         BackgroundY = point.Value.Y;
         _maker.BackgroundPoint = point.Value;
-        ShowStatus($"背景ポイントが ({point.Value.X}, {point.Value.Y}) に設定されました。オブジェクトを選択するには左クリックしてください。");
+
+        ShowStatus(Localizer.Instance.Get(Loc.Success.BackgroundPoint.Set, [point.Value.X.ToString(), point.Value.Y.ToString()]));
     }
 
     private Point? GetImagePoint(double x, double y, double displayWidth, double displayHeight)
@@ -147,7 +143,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     {
         if (!_maker.ImageLoaded)
         {
-            ShowStatus("画像を読み込んでから保存してください。");
+            ShowStatus(Localizer.Instance[Loc.Error.NoImageLoaded]);
             return;
         }
 
@@ -157,19 +153,19 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         var result = _maker.SaveMask(path);
         if (result.IsError)
         {
-            ShowStatus(result.FirstError.Description);
+            ShowStatus(Localizer.Instance[result.FirstError.Description]);
             return;
         }
 
-        ShowStatus($"マスク画像が保存されました: {Path.GetFileName(path)}");
+        ShowStatus(Localizer.Instance.Get(Loc.Success.MaskSaved, [Path.GetFileName(path)]));
     }
 
     private void ClearSelections()
     {
         _maker.ClearSelections();
         SelectionAreas.Clear();
+
         RefreshMaskPreview();
-        ShowStatus("選択エリアがクリアされました。");
         UpdateWindowTitle();
     }
 
@@ -238,7 +234,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         if (result.IsError)
         {
             MaskPreview = null;
-            ShowStatus(result.FirstError.Description);
+            ShowStatus(Localizer.Instance[result.FirstError.Description]);
             return;
         }
 
@@ -263,10 +259,21 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     private void UpdateWindowTitle()
     {
         var mask = _maker.MergeSelections();
-        if (SelectionAreas.Count == 0)
-            WindowTitle = $"QuickMask {CurrentVersion}";
+
+        var windowTitleValues = new List<string>
+        {
+            Localizer.Instance.Get(Loc.WindowTitle.Base, [CurrentVersion])
+        };
+
+        if (_maker.UVImageLoaded)
+            windowTitleValues.Add(Localizer.Instance.Get(Loc.WindowTitle.UvGuideLoaded));
         else
-            WindowTitle = $"QuickMask {CurrentVersion} - {SelectionAreas.Count:N0}個の選択エリア (総選択ピクセル数: {BitArrayUtils.GetCount(mask, true):N0})";
+            windowTitleValues.Add(Localizer.Instance.Get(Loc.WindowTitle.UvGuideNotLoaded));
+
+        if (SelectionAreas.Count > 0)
+            windowTitleValues.Add(Localizer.Instance.Get(Loc.WindowTitle.SelectionAreaCount, [SelectionAreas.Count.ToString("N0"), BitArrayUtils.GetCount(mask, true).ToString("N0")]));
+
+        WindowTitle = string.Join("  |  ", windowTitleValues);
     }
 
     private void ShowStatus(string message)

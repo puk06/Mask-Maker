@@ -1,5 +1,6 @@
 using System.Collections;
 using ErrorOr;
+using QuickMask.Core.Localization;
 using QuickMask.Core.Models;
 using QuickMask.Core.Utils;
 using SkiaSharp;
@@ -34,19 +35,21 @@ public sealed class QuickMask : IDisposable
         Image = candidate;
 
         UVImage?.Dispose();
-        UVImage = candidate;
+        UVImage = null;
 
         return Result.Success;
     }
     public async Task<ErrorOr<Success>> LoadUVGuideImage(string filePath)
     {
+        if (Image == null) return Error.Failure(description: Loc.Error.NoImageLoaded);
+
         var candidate = new Image(filePath);
         await candidate.Load();
 
-        if (Image != null && !HasMatchingDimensions(Image, candidate))
+        if (!HasMatchingDimensions(Image, candidate))
         {
             candidate.Dispose();
-            return Error.Failure(description: "Texture image and UV guide image dimensions do not match.");
+            return Error.Failure(description: Loc.Error.ImageSelector.DimensionMismatch);
         }
 
         DisposeImageSelector(ref _imageSelector);
@@ -72,7 +75,7 @@ public sealed class QuickMask : IDisposable
 
     public ErrorOr<Success> Select(Point point, bool erase = false)
     {
-        if (Image == null) return Error.Failure(description: "No image loaded.");
+        if (Image == null) return Error.Failure(description: Loc.Error.NoImageLoaded);
 
         var selector = _imageSelector ??= new ImageSelector(Image, guideImage: UVImage);
         var initializeResult = selector.Initialize(BackgroundPoint);

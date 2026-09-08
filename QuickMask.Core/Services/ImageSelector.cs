@@ -1,5 +1,6 @@
 using System.Collections;
 using ErrorOr;
+using QuickMask.Core.Localization;
 using QuickMask.Core.Models;
 using QuickMask.Core.Utils;
 using SkiaSharp;
@@ -22,10 +23,10 @@ public sealed class ImageSelector(Image sourceImage, Image? guideImage = null) :
     public ErrorOr<Success> Initialize(Point backgroundPoint)
     {
         var image = GetImage();
-        if (!ValidatePoint(backgroundPoint, image)) return Error.Failure(description: "Invalid background point.");
+        if (!ValidatePoint(backgroundPoint, image)) return Error.Failure(description: Loc.Error.ImageSelector.InvalidBackgroundPoint);
 
         if (_guideImage != null && (_guideImage.Width != image.Width || _guideImage.Height != image.Height))
-            return Error.Failure(description: "The guide image dimensions must match the source image.");
+            return Error.Failure(description: Loc.Error.ImageSelector.GuideImageSizeMismatch);
 
         // Selecting several objects with the same background must not rebuild this mask.
         if (_initialized && _backgroundPoint == backgroundPoint) return Result.Success;
@@ -120,13 +121,13 @@ public sealed class ImageSelector(Image sourceImage, Image? guideImage = null) :
         var image = GetImage();
         if (!_initialized || _selectablePixels == null || _visitMarks == null || _queue == null)
         {
-            return Error.Failure(description: "Image selector is not properly initialized.");
+            return Error.Failure(description: Loc.Error.ImageSelector.NotProperlyInitialized);
         }
 
-        if (!ValidatePoint(point, image)) return Error.Failure(description: "Invalid selection point.");
+        if (!ValidatePoint(point, image)) return Error.Failure(description: Loc.Error.ImageSelector.InvalidSelectionPoint);
 
         var startIndex = PixelUtils.GetPixelIndex(point.X, point.Y, image.Width);
-        if (_selectablePixels[startIndex] == 0) return Error.Failure(description: "The selected point is not part of any selectable object.");
+        if (_selectablePixels[startIndex] == 0) return Error.Failure(description: Loc.Error.ImageSelector.PointNotSelectable);
 
         var token = NextVisitToken();
         var selected = new SelectionArea(image.Width, image.Height);

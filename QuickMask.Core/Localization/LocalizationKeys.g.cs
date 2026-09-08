@@ -16,6 +16,13 @@ public static class Loc
 {
     public const string LanguageName = "LanguageName";
     public const string LanguagePriority = "LanguagePriority";
+    public static class WindowTitle
+    {
+        public const string Base = "WindowTitle.Base";
+        public const string UvGuideLoaded = "WindowTitle.UvGuideLoaded";
+        public const string UvGuideNotLoaded = "WindowTitle.UvGuideNotLoaded";
+        public const string SelectionAreaCount = "WindowTitle.SelectionAreaCount";
+    }
     public static class Main
     {
         public static class MenuBar
@@ -63,5 +70,30 @@ public static class Loc
             public const string Remove = "SelectionArea.ContextMenu.Remove";
         }
         public const string ClearSelection = "SelectionArea.ClearSelection";
+    }
+    public static class Success
+    {
+        public static class SelectionArea
+        {
+            public const string Added = "Success.SelectionArea.Added";
+        }
+        public static class BackgroundPoint
+        {
+            public const string Set = "Success.BackgroundPoint.Set";
+        }
+        public const string MaskSaved = "Success.MaskSaved";
+    }
+    public static class Error
+    {
+        public const string NoImageLoaded = "Error.NoImageLoaded";
+        public static class ImageSelector
+        {
+            public const string InvalidBackgroundPoint = "Error.ImageSelector.InvalidBackgroundPoint";
+            public const string DimensionMismatch = "Error.ImageSelector.DimensionMismatch";
+            public const string GuideImageSizeMismatch = "Error.ImageSelector.GuideImageSizeMismatch";
+            public const string NotProperlyInitialized = "Error.ImageSelector.NotProperlyInitialized";
+            public const string InvalidSelectionPoint = "Error.ImageSelector.InvalidSelectionPoint";
+            public const string PointNotSelectable = "Error.ImageSelector.PointNotSelectable";
+        }
     }
 }

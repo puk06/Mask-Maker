@@ -2,6 +2,11 @@
 	"LanguageName": "日本語",
 	"LanguagePriority": "0",
 
+	"WindowTitle.Base": "QuickMask v{0}",
+	"WindowTitle.UvGuideLoaded": "UV画像読み込み済み",
+	"WindowTitle.UvGuideNotLoaded": "UV画像未読み込み",
+	"WindowTitle.SelectionAreaCount": "{0}個の選択エリア (総選択ピクセル数: {1})",
+
 	"Main.MenuBar.UVImage.Title": "UV画像",
 	"Main.MenuBar.UVImage.UnloadUV": "UV画像の読み込みを解除する",
 
@@ -24,9 +29,21 @@
 
 	"SelectionArea.PixelCount": "{0} ピクセル",
 
+	"Success.SelectionArea.Added": "{0} を追加しました ({1}, {2})。合計: {3}個の選択エリア",
+	"Success.BackgroundPoint.Set": "背景ポイントを設定しました ({0}, {1})",
+	"Success.MaskSaved": "マスク画像を保存しました: {0}",
+
 	"SelectionArea.ContextMenu.ToggleAreaType": "選択 / 消去エリアの切り換え",
 	"SelectionArea.ContextMenu.Remove": "削除",
 
 	"SelectionArea.ClearSelection": "選択エリアをクリア",
-	"Main.GenerateMask": "マスクを出力"
+	"Main.GenerateMask": "マスクを出力",
+
+	"Error.NoImageLoaded": "画像が読み込まれていません。まず画像を読み込んでください。",
+	"Error.ImageSelector.InvalidBackgroundPoint": "無効な背景ポイントです。画像内の有効な位置をクリックしてください。",
+	"Error.ImageSelector.DimensionMismatch": "画像の寸法が一致しません。UV画像とテクスチャ画像の寸法が同じであることを確認してください。",
+	"Error.ImageSelector.GuideImageSizeMismatch": "UV画像の寸法が一致しません。UV画像とテクスチャ画像の寸法が同じであることを確認してください。",
+	"Error.ImageSelector.NotProperlyInitialized": "画像選択ツールが正しく初期化されていません。画像を読み込んでから再度お試しください。",
+	"Error.ImageSelector.InvalidSelectionPoint": "無効な選択ポイントです。画像内の有効な位置をクリックしてください。",
+	"Error.ImageSelector.PointNotSelectable": "選択したポイントは選択可能なオブジェクトの一部ではありません。画像内の有効な位置をクリックしてください。"
 }
