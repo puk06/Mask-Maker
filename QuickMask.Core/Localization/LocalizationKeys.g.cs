@@ -45,6 +45,11 @@ public static class Loc
         public static class MaskTexture
         {
             public const string Label = "Main.MaskTexture.Label";
+            public static class PreviewMode
+            {
+                public const string Mask = "Main.MaskTexture.PreviewMode.Mask";
+                public const string Overlay = "Main.MaskTexture.PreviewMode.Overlay";
+            }
         }
         public const string LoadImage = "Main.LoadImage";
         public const string LoadUVImage = "Main.LoadUVImage";

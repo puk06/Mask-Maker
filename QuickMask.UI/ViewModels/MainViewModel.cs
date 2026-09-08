@@ -1,9 +1,13 @@
 using System.Collections.ObjectModel;
 using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using PixelSize = Avalonia.PixelSize;
+using Vector = Avalonia.Vector;
 using QuickMask.Core.Localization;
 using QuickMask.Core.Models;
 using QuickMask.UI.Localization;
 using ReactiveUI;
+using ReactiveUI.Primitives;
 using ReactiveUI.SourceGenerators;
 using SkiaSharp;
 
@@ -12,9 +16,11 @@ namespace QuickMask.UI.ViewModels;
 public partial class MainViewModel : ReactiveObject, IDisposable
 {
     public const string CurrentVersion = "1.0.0";
+    private const int PreviewMaxSize = 512;
 
     private readonly Services.IFileDialogService _dialogs;
     private readonly Core.Services.QuickMask _maker = new();
+    private SKBitmap? _sourcePreview;
     private bool _disposed = false;
 
     [Reactive] public partial Bitmap? SourcePreview { get; private set; }
@@ -25,6 +31,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     [Reactive] public partial int BackgroundX { get; set; }
     [Reactive] public partial int BackgroundY { get; set; }
     [Reactive] public partial string Status { get; set; } = string.Empty;
+    [Reactive] public partial bool IsOverlayPreview { get; set; } = true;
 
     public IReactiveCommand OpenImageCommand { get; }
     public IReactiveCommand OpenUvImageCommand { get; }
@@ -43,6 +50,12 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         SaveMaskCommand = ReactiveCommand.CreateFromTask(SaveMaskAsync);
         ClearSelectionsCommand = ReactiveCommand.Create(ClearSelections);
         SelectAllObjectsCommand = ReactiveCommand.Create(SelectAllObjects);
+
+        this.WhenAnyValue(x => x.IsOverlayPreview)
+            .Subscribe(_ =>
+            {
+                RefreshSelectionState();
+            });
 
         UpdateWindowTitle();
     }
@@ -65,9 +78,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
         SelectionAreas.Clear();
         SetSourcePreview(path);
-        RefreshMaskPreview();
-
-        UpdateWindowTitle();
+        RefreshSelectionState();
     }
 
     private async Task OpenUvImageAsync()
@@ -103,7 +114,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         }
 
         AddLatestSelection();
-        RefreshMaskPreview();
+        RefreshSelectionState();
 
         var areaType = erase ? Localizer.Instance[Loc.SelectionArea.AreaType.Eraser] : Localizer.Instance[Loc.SelectionArea.AreaType.Selection];
 
@@ -179,7 +190,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         }
 
         AddLatestSelections(result.Value.Length);
-        RefreshMaskPreview();
+        RefreshSelectionState();
 
         ShowStatus(Localizer.Instance.Get(Loc.Success.SelectionArea.AddedMultiple, [result.Value.Length.ToString(), SelectionAreas.Count.ToString()]));
     }
@@ -189,8 +200,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         _maker.ClearSelections();
         SelectionAreas.Clear();
 
-        RefreshMaskPreview();
-        UpdateWindowTitle();
+        RefreshSelectionState();
     }
 
     private void AddLatestSelection() => AddLatestSelections(1);
@@ -203,7 +213,6 @@ public partial class MainViewModel : ReactiveObject, IDisposable
             SelectionAreas.Add(new(_maker.Selections[start + i], MoveSelection, RemoveSelection, RefreshSelectionState));
 
         UpdateSelectionIndexes();
-        UpdateWindowTitle();
     }
 
     private void MoveSelection(SelectionAreaViewModel item, int offset)
@@ -239,56 +248,80 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
     private void RefreshSelectionState()
     {
-        RefreshMaskPreview();
-        UpdateWindowTitle();
+        var mask = _maker.MergeSelections();
+
+        RefreshSelectionPreview(mask);
+        UpdateWindowTitle(mask);
     }
 
     private void SetSourcePreview(string path)
     {
         SourcePreview?.Dispose();
+        SourcePreview = null;
+
+        _sourcePreview?.Dispose();
+        _sourcePreview = null;
+
         using var source = SKBitmap.Decode(path);
-        SourcePreview = CreatePreviewBitmap(source);
+        if (source == null) return;
+
+        var scale = Math.Min(1.0, PreviewMaxSize / (double)Math.Max(source.Width, source.Height));
+        var width = Math.Max(1, (int)Math.Round(source.Width * scale));
+        var height = Math.Max(1, (int)Math.Round(source.Height * scale));
+
+        using var resized = width == source.Width && height == source.Height
+            ? null
+            : source.Resize(new SKImageInfo(width, height), new(SKFilterMode.Linear, SKMipmapMode.Linear));
+
+        _sourcePreview = (resized ?? source).Copy();
+        if (_sourcePreview == null) return;
+
+        SourcePreview = CreateBitmap(_sourcePreview);
     }
 
-    private void RefreshMaskPreview()
+    private void RefreshSelectionPreview(PixelMask mask)
     {
         MaskPreview?.Dispose();
-        if (_maker.Image == null)
-        {
-            MaskPreview = null;
-            return;
-        }
+        MaskPreview = null;
 
-        var result = _maker.GenerateMask();
+        if (_maker.Image == null) return;
+        if (IsOverlayPreview && _sourcePreview == null) return;
+
+        var result = IsOverlayPreview
+            ? _maker.GenerateSelectionPreview(_sourcePreview!)
+            : _maker.GenerateMaskPreview(mask, PreviewMaxSize);
+
         if (result.IsError)
         {
-            MaskPreview = null;
             ShowStatus(Localizer.Instance[result.FirstError.Description]);
             return;
         }
 
-        MaskPreview = CreatePreviewBitmap(result.Value);
+        MaskPreview = CreateBitmap(result.Value);
         result.Value.Dispose();
     }
 
-    private static Bitmap CreatePreviewBitmap(SKBitmap source)
+    private static unsafe Bitmap CreateBitmap(SKBitmap source)
     {
-        const int maxSize = 512;
-        var scale = Math.Min(1.0, maxSize / (double)Math.Max(source.Width, source.Height));
-        var width = Math.Max(1, (int)Math.Round(source.Width * scale));
-        var height = Math.Max(1, (int)Math.Round(source.Height * scale));
+        var format = source.ColorType == SKColorType.Bgra8888 ? PixelFormat.Bgra8888 : PixelFormat.Rgba8888;
+        var bitmap = new WriteableBitmap(new PixelSize(source.Width, source.Height), new Vector(96, 96), format, AlphaFormat.Premul);
 
-        using var resized = source.Resize(new SKImageInfo(width, height), new(SKFilterMode.Linear, SKMipmapMode.Linear));
-        using var image = SKImage.FromBitmap(resized ?? source);
-        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-        using var stream = new MemoryStream(data.ToArray());
-        return new Bitmap(stream);
+        using var framebuffer = bitmap.Lock();
+
+        var destination = new Span<byte>((void*)framebuffer.Address, framebuffer.RowBytes * source.Height);
+        var pixels = source.GetPixelSpan();
+        var rowBytes = Math.Min(source.RowBytes, framebuffer.RowBytes);
+
+        for (var y = 0; y < source.Height; y++)
+            pixels.Slice(y * source.RowBytes, rowBytes).CopyTo(destination.Slice(y * framebuffer.RowBytes, rowBytes));
+
+        return bitmap;
     }
 
-    private void UpdateWindowTitle()
-    {
-        var mask = _maker.MergeSelections();
+    private void UpdateWindowTitle() => UpdateWindowTitle(_maker.MergeSelections());
 
+    private void UpdateWindowTitle(PixelMask mask)
+    {
         var windowTitleValues = new List<string>
         {
             Localizer.Instance.Get(Loc.WindowTitle.Base, [CurrentVersion])
@@ -324,6 +357,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         {
             SourcePreview?.Dispose();
             MaskPreview?.Dispose();
+            _sourcePreview?.Dispose();
+            _sourcePreview = null;
             _maker.Dispose();
         }
 

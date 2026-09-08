@@ -16,6 +16,7 @@ public sealed class QuickMask : IDisposable
     public Point BackgroundPoint { get; set; }
 
     private ImageSelector? _imageSelector = null;
+    private PixelMask? _merged;
 
     public List<SelectionArea> Selections { get; } = [];
 
@@ -112,7 +113,16 @@ public sealed class QuickMask : IDisposable
 
     public PixelMask MergeSelections()
     {
-        var result = new PixelMask(Image?.PixelCount ?? UVImage?.PixelCount ?? 0);
+        var length = Image?.PixelCount ?? UVImage?.PixelCount ?? 0;
+        var result = _merged;
+
+        if (result == null || result.Length != length)
+        {
+            result = new PixelMask(length);
+            _merged = result;
+        }
+        else result.Clear();
+
         foreach (var selection in Selections)
         {
             if (!selection.IsEnabled) continue;
@@ -133,11 +143,18 @@ public sealed class QuickMask : IDisposable
 
     private static bool HasMatchingDimensions(Image first, Image second) => first.Width == second.Width && first.Height == second.Height;
 
-    public ErrorOr<SKBitmap> GenerateMask()
+    public ErrorOr<SKBitmap> GenerateSelectionPreview(SKBitmap baseImage)
+    {
+        if (Image == null) return Error.Failure(description: Loc.Error.NoImageLoaded);
+
+        return SelectionPreviewGenerator.Generate(Selections, Image.Width, Image.Height, baseImage);
+    }
+
+    public ErrorOr<SKBitmap> GenerateMaskPreview(PixelMask mask, int maxSize)
     {
         var width = Image?.Width ?? 0;
         var height = Image?.Height ?? 0;
-        return MaskGenerator.Generate(MergeSelections(), width, height);
+        return MaskGenerator.GeneratePreview(mask, width, height, maxSize);
     }
     public ErrorOr<Success> SaveMask(string filePath, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100)
     {
@@ -155,6 +172,8 @@ public sealed class QuickMask : IDisposable
 
         UVImage?.Dispose();
         UVImage = null;
+
+        _merged = null;
 
         GC.SuppressFinalize(this);
     }

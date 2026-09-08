@@ -15,6 +15,8 @@
 
 	"Main.SourceTexture.Label": "テクスチャ画像",
 	"Main.MaskTexture.Label": "マスク画像",
+	"Main.MaskTexture.PreviewMode.Mask": "マスク",
+	"Main.MaskTexture.PreviewMode.Overlay": "オーバーレイ",
 
 	"Main.LoadImage": "画像を読み込む",
 	"Main.LoadUVImage": "UV画像を読み込む",

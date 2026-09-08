@@ -1,5 +1,7 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
 using SkiaSharp;
 
 namespace QuickMask.Core.Models;
@@ -42,22 +44,36 @@ public sealed class PixelMask
     public void Or(PixelMask other)
     {
         ValidateSameLength(this, other);
-
-        var words = _words.AsSpan();
-        var otherWords = other._words.AsSpan();
-
-        for (var i = 0; i < words.Length; i++) words[i] |= otherWords[i];
+        Combine(other._words, or: true);
     }
 
     /// <summary>this &amp;= ~other</summary>
     public void AndNot(PixelMask other)
     {
         ValidateSameLength(this, other);
+        Combine(other._words, or: false);
+    }
 
+    private void Combine(ulong[] other, bool or)
+    {
         var words = _words.AsSpan();
-        var otherWords = other._words.AsSpan();
+        var otherWords = other.AsSpan();
+        var index = 0;
 
-        for (var i = 0; i < words.Length; i++) words[i] &= ~otherWords[i];
+        if (Vector256.IsHardwareAccelerated)
+        {
+            var left = MemoryMarshal.Cast<ulong, Vector256<byte>>(words);
+            var right = MemoryMarshal.Cast<ulong, Vector256<byte>>(otherWords);
+            var vectors = left.Length;
+
+            for (; index < vectors; index++)
+                left[index] = or ? Vector256.BitwiseOr(left[index], right[index]) : Vector256.AndNot(left[index], right[index]);
+
+            index = vectors * (Vector256<byte>.Count / sizeof(ulong));
+        }
+
+        for (; index < words.Length; index++)
+            words[index] = or ? words[index] | otherWords[index] : words[index] & ~otherWords[index];
     }
 
     public int PopCount()
@@ -65,6 +81,37 @@ public sealed class PixelMask
         var count = 0;
 
         foreach (var word in _words) count += BitOperations.PopCount(word);
+
+        return count;
+    }
+
+    public int CountSetBits(int startIndex, int length)
+    {
+        if (startIndex < 0 || length < 0 || startIndex + length > Length)
+            throw new ArgumentOutOfRangeException(nameof(startIndex));
+
+        var words = _words.AsSpan();
+        var wordIndex = startIndex >> 6;
+        var offset = startIndex & 63;
+        var remaining = length;
+        var count = 0;
+
+        while (remaining > 0)
+        {
+            if (offset == 0 && remaining >= 64)
+            {
+                count += BitOperations.PopCount(words[wordIndex++]);
+                remaining -= 64;
+                continue;
+            }
+
+            var take = Math.Min(64 - offset, remaining);
+            var mask = take == 64 ? ulong.MaxValue : (1UL << take) - 1;
+
+            count += BitOperations.PopCount((words[wordIndex++] >> offset) & mask);
+            remaining -= take;
+            offset = 0;
+        }
 
         return count;
     }

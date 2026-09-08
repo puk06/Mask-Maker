@@ -192,11 +192,21 @@ public sealed class ImageSelector(Image sourceImage, Image? guideImage = null) :
         visited[startIndex] = true;
         mask[startIndex] = true;
 
+        var minX = startIndex % width;
+        var maxX = minX;
+        var minY = startIndex / width;
+        var maxY = minY;
+
         while (_queue.HasPending)
         {
             var index = _queue.Dequeue();
             var x = index % width;
             var y = index / width;
+
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y < minY) minY = y;
+            if (y > maxY) maxY = y;
 
             if (x > 0) TryVisitObject(index - 1, selectable, visited, mask, ref _queue);
             if (x + 1 < width) TryVisitObject(index + 1, selectable, visited, mask, ref _queue);
@@ -204,6 +214,7 @@ public sealed class ImageSelector(Image sourceImage, Image? guideImage = null) :
             if (y + 1 < height) TryVisitObject(index + width, selectable, visited, mask, ref _queue);
         }
 
+        selected.Bounds = new PixelBounds(minX, minY, maxX, maxY);
         selected.PixelCount = _queue.Count;
 
         ClearVisited(visited, _queue.VisitedIndices);

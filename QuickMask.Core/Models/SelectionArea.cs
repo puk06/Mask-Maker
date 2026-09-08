@@ -3,6 +3,7 @@ namespace QuickMask.Core.Models;
 public class SelectionArea(int width, int height)
 {
     public PixelMask Mask { get; } = new(width * height);
+    public PixelBounds Bounds { get; set; } = new(0, 0, Math.Max(0, width - 1), Math.Max(0, height - 1));
     public int PixelCount { get; set; }
     public bool IsErase { get; set; }
     public bool IsEnabled { get; set; } = true;
