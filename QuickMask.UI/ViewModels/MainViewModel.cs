@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using Avalonia.Media.Imaging;
+using QuickMask.Core.Localization;
 using QuickMask.Core.Models;
 using QuickMask.Core.Utils;
+using QuickMask.UI.Localization;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
 using SkiaSharp;
@@ -17,13 +19,13 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     private bool _disposed = false;
 
     [Reactive] public partial Bitmap? SourcePreview { get; private set; }
-    public bool HasSourceImage => _maker.Image is not null;
     [Reactive] public partial Bitmap? MaskPreview { get; private set; }
     public ObservableCollection<SelectionAreaViewModel> SelectionAreas { get; } = [];
-    [Reactive] public partial string Status { get; set; } = string.Empty;
+
     [Reactive] public partial string WindowTitle { get; set; } = string.Empty;
     [Reactive] public partial int BackgroundX { get; set; }
     [Reactive] public partial int BackgroundY { get; set; }
+    [Reactive] public partial string Status { get; set; } = string.Empty;
 
     public IReactiveCommand OpenImageCommand { get; }
     public IReactiveCommand OpenUvImageCommand { get; }
@@ -34,6 +36,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     public MainViewModel(Services.IFileDialogService dialogs)
     {
         _dialogs = dialogs;
+
         OpenImageCommand = ReactiveCommand.CreateFromTask(OpenImageAsync);
         OpenUvImageCommand = ReactiveCommand.CreateFromTask(OpenUvImageAsync);
         UnloadUvImageCommand = ReactiveCommand.Create(_maker.UnloadUVGuideImage);
@@ -62,7 +65,6 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         SelectionAreas.Clear();
         UpdateWindowTitle();
         SetSourcePreview(path);
-        ShowStatus("画像をクリックしてオブジェクトを選択してください。");
         RefreshMaskPreview();
     }
 
@@ -108,7 +110,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         AddLatestSelection();
         RefreshMaskPreview();
 
-        var areaType = erase ? "消去エリア" : "選択エリア";
+        var areaType = erase ? Localizer.Instance[Loc.SelectionArea.AreaType.Eraser] : Localizer.Instance[Loc.SelectionArea.AreaType.Selection];
         ShowStatus($"{areaType}を追加しました ({point.Value.X}, {point.Value.Y})。合計: {SelectionAreas.Count}個の選択エリア");
     }
 
