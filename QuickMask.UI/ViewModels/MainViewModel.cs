@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using Avalonia.Media.Imaging;
 using QuickMask.Core.Localization;
 using QuickMask.Core.Models;
-using QuickMask.Core.Utils;
 using QuickMask.UI.Localization;
 using ReactiveUI;
 using ReactiveUI.SourceGenerators;
@@ -271,7 +270,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
             windowTitleValues.Add(Localizer.Instance.Get(Loc.WindowTitle.UvGuideNotLoaded));
 
         if (SelectionAreas.Count > 0)
-            windowTitleValues.Add(Localizer.Instance.Get(Loc.WindowTitle.SelectionAreaCount, [SelectionAreas.Count.ToString("N0"), BitArrayUtils.GetCount(mask, true).ToString("N0")]));
+            windowTitleValues.Add(Localizer.Instance.Get(Loc.WindowTitle.SelectionAreaCount, [SelectionAreas.Count.ToString("N0"), mask.PopCount().ToString("N0")]));
 
         WindowTitle = string.Join("  |  ", windowTitleValues);
     }

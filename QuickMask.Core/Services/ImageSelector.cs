@@ -1,4 +1,3 @@
-using System.Collections;
 using ErrorOr;
 using QuickMask.Core.Localization;
 using QuickMask.Core.Models;
@@ -10,13 +9,14 @@ namespace QuickMask.Core.Services;
 /// <summary>Finds four-connected objects in an image.</summary>
 public sealed class ImageSelector(Image sourceImage, Image? guideImage = null) : IDisposable
 {
+    private const int InitialQueueCapacity = 64 * 1024;
+
     private Image? _sourceImage = sourceImage;
     private Image? _guideImage = guideImage;
     private Point _backgroundPoint;
-    private byte[]? _selectablePixels;
-    private int[]? _visitMarks;
-    private int[]? _queue;
-    private int _visitToken;
+    private PixelMask? _selectablePixels;
+    private PixelMask? _visitedPixels;
+    private PixelQueue _queue;
     private bool _initialized;
     private bool _disposed;
 
@@ -35,32 +35,40 @@ public sealed class ImageSelector(Image sourceImage, Image? guideImage = null) :
         _selectablePixels = BuildImageSelectablePixels(image, backgroundPoint);
         if (_guideImage != null) ApplyUvGuide(_selectablePixels, _guideImage, backgroundPoint);
 
-        _visitMarks = new int[image.PixelCount];
-        _queue = new int[image.PixelCount];
-        _visitToken = 0;
+        _visitedPixels = new PixelMask(image.PixelCount);
+        _queue = new PixelQueue(Math.Min(image.PixelCount, InitialQueueCapacity), image.PixelCount);
         _initialized = true;
 
         return Result.Success;
     }
 
-    private static byte[] BuildImageSelectablePixels(Image image, Point backgroundPoint)
+    private static PixelMask BuildImageSelectablePixels(Image image, Point backgroundPoint)
     {
         var pixels = image.AsSpan();
-        var width = image.Width;
+        var backgroundColor = pixels[PixelUtils.GetPixelIndex(backgroundPoint.X, backgroundPoint.Y, image.Width)];
 
-        var backgroundColor = pixels[PixelUtils.GetPixelIndex(backgroundPoint.X, backgroundPoint.Y, width)];
+        var result = new PixelMask(pixels.Length);
+        var words = result.Words;
 
-        var result = new byte[pixels.Length];
-
-        for (var i = 0; i < pixels.Length; i++)
+        for (var wordIndex = 0; wordIndex < words.Length; wordIndex++)
         {
-            result[i] = pixels[i].Equals(backgroundColor) ? (byte)0 : (byte)1;
+            var offset = wordIndex << 6;
+            var count = Math.Min(64, pixels.Length - offset);
+
+            ulong word = 0;
+
+            for (var bit = 0; bit < count; bit++)
+            {
+                if (!pixels[offset + bit].Equals(backgroundColor)) word |= 1UL << bit;
+            }
+
+            words[wordIndex] = word;
         }
 
         return result;
     }
 
-    private static byte[] BuildUvSelectablePixels(Image image, Point backgroundPoint)
+    private static PixelMask BuildUvBackgroundPixels(Image image, Point backgroundPoint)
     {
         var pixels = image.AsSpan();
         var width = image.Width;
@@ -69,107 +77,100 @@ public sealed class ImageSelector(Image sourceImage, Image? guideImage = null) :
         var backgroundIndex = PixelUtils.GetPixelIndex(backgroundPoint.X, backgroundPoint.Y, width);
         var backgroundColor = pixels[backgroundIndex];
 
-        var background = new byte[pixels.Length];
-        var queue = new int[pixels.Length];
+        var background = new PixelMask(pixels.Length);
+        var queue = new PixelQueue(Math.Min(pixels.Length, InitialQueueCapacity), pixels.Length);
 
-        var head = 0;
-        var tail = 1;
+        queue.Enqueue(backgroundIndex);
+        background[backgroundIndex] = true;
 
-        queue[0] = backgroundIndex;
-        background[queue[0]] = 1;
-
-        while (head < tail)
+        while (queue.HasPending)
         {
-            var index = queue[head++];
+            var index = queue.Dequeue();
             var x = index % width;
             var y = index / width;
 
-            if (x > 0) TryVisitBackground(index - 1, pixels, backgroundColor, background, queue, ref tail);
-            if (x + 1 < width) TryVisitBackground(index + 1, pixels, backgroundColor, background, queue, ref tail);
-            if (y > 0) TryVisitBackground(index - width, pixels, backgroundColor, background, queue, ref tail);
-            if (y + 1 < height) TryVisitBackground(index + width, pixels, backgroundColor, background, queue, ref tail);
-        }
-
-        for (var i = 0; i < background.Length; i++)
-        {
-            background[i] = background[i] == 0 ? (byte)1 : (byte)0;
+            if (x > 0) TryVisitBackground(index - 1, pixels, backgroundColor, background, ref queue);
+            if (x + 1 < width) TryVisitBackground(index + 1, pixels, backgroundColor, background, ref queue);
+            if (y > 0) TryVisitBackground(index - width, pixels, backgroundColor, background, ref queue);
+            if (y + 1 < height) TryVisitBackground(index + width, pixels, backgroundColor, background, ref queue);
         }
 
         return background;
     }
 
-    private static void ApplyUvGuide(byte[] selectablePixels, Image guideImage, Point backgroundPoint)
+    private static void ApplyUvGuide(PixelMask selectablePixels, Image guideImage, Point backgroundPoint)
     {
-        var guidePixels = BuildUvSelectablePixels(guideImage, backgroundPoint);
+        var backgroundPixels = BuildUvBackgroundPixels(guideImage, backgroundPoint);
 
-        for (var i = 0; i < selectablePixels.Length; i++)
-        {
-            selectablePixels[i] &= guidePixels[i];
-        }
+        selectablePixels.AndNot(backgroundPixels);
     }
 
-    private static void TryVisitBackground(int index, ReadOnlySpan<SKColor> pixels, SKColor backgroundColor, byte[] visited, int[] queue, ref int tail)
+    private static void TryVisitBackground(int index, ReadOnlySpan<SKColor> pixels, SKColor backgroundColor, PixelMask visited, ref PixelQueue queue)
     {
-        if (visited[index] != 0 || !pixels[index].Equals(backgroundColor)) return;
+        if (visited[index] || !pixels[index].Equals(backgroundColor)) return;
 
-        visited[index] = 1;
-        queue[tail++] = index;
+        visited[index] = true;
+        queue.Enqueue(index);
     }
 
     public ErrorOr<SelectionArea> Select(Point point)
     {
         var image = GetImage();
-        if (!_initialized || _selectablePixels == null || _visitMarks == null || _queue == null)
+        if (!_initialized || _selectablePixels == null || _visitedPixels == null)
         {
             return Error.Failure(description: Loc.Error.ImageSelector.NotProperlyInitialized);
         }
 
         if (!ValidatePoint(point, image)) return Error.Failure(description: Loc.Error.ImageSelector.InvalidSelectionPoint);
 
-        var startIndex = PixelUtils.GetPixelIndex(point.X, point.Y, image.Width);
-        if (_selectablePixels[startIndex] == 0) return Error.Failure(description: Loc.Error.ImageSelector.PointNotSelectable);
+        var width = image.Width;
+        var height = image.Height;
 
-        var token = NextVisitToken();
-        var selected = new SelectionArea(image.Width, image.Height);
+        var startIndex = PixelUtils.GetPixelIndex(point.X, point.Y, width);
+        if (!_selectablePixels[startIndex]) return Error.Failure(description: Loc.Error.ImageSelector.PointNotSelectable);
 
-        var head = 0;
-        var tail = 1;
+        var visited = _visitedPixels;
+        var selectable = _selectablePixels;
+        var selected = new SelectionArea(width, height);
+        var mask = selected.Mask;
 
-        _queue[0] = startIndex;
-        _visitMarks[startIndex] = token;
-        selected.Mask[startIndex] = true;
+        _queue.Reset();
 
-        while (head < tail)
+        _queue.Enqueue(startIndex);
+        visited[startIndex] = true;
+        mask[startIndex] = true;
+
+        while (_queue.HasPending)
         {
-            var index = _queue[head++];
-            var x = index % image.Width;
-            var y = index / image.Width;
+            var index = _queue.Dequeue();
+            var x = index % width;
+            var y = index / width;
 
-            if (x > 0) TryVisitObject(index - 1, _selectablePixels, _visitMarks, token, selected.Mask, _queue, ref tail);
-            if (x + 1 < image.Width) TryVisitObject(index + 1, _selectablePixels, _visitMarks, token, selected.Mask, _queue, ref tail);
-            if (y > 0) TryVisitObject(index - image.Width, _selectablePixels, _visitMarks, token, selected.Mask, _queue, ref tail);
-            if (y + 1 < image.Height) TryVisitObject(index + image.Width, _selectablePixels, _visitMarks, token, selected.Mask, _queue, ref tail);
+            if (x > 0) TryVisitObject(index - 1, selectable, visited, mask, ref _queue);
+            if (x + 1 < width) TryVisitObject(index + 1, selectable, visited, mask, ref _queue);
+            if (y > 0) TryVisitObject(index - width, selectable, visited, mask, ref _queue);
+            if (y + 1 < height) TryVisitObject(index + width, selectable, visited, mask, ref _queue);
         }
+
+        selected.PixelCount = _queue.Count;
+
+        ClearVisited(visited, _queue.VisitedIndices);
 
         return selected;
     }
 
-    private static void TryVisitObject(int index, byte[] selectable, int[] marks, int token, BitArray selected, int[] queue, ref int tail)
+    private static void TryVisitObject(int index, PixelMask selectable, PixelMask visited, PixelMask selected, ref PixelQueue queue)
     {
-        if (selectable[index] == 0 || marks[index] == token) return;
-        marks[index] = token;
+        if (!selectable[index] || visited[index]) return;
+
+        visited[index] = true;
         selected[index] = true;
-        queue[tail++] = index;
+        queue.Enqueue(index);
     }
 
-    private int NextVisitToken()
+    private static void ClearVisited(PixelMask visited, ReadOnlySpan<int> indices)
     {
-        if (_visitToken == int.MaxValue)
-        {
-            Array.Clear(_visitMarks!);
-            _visitToken = 0;
-        }
-        return ++_visitToken;
+        foreach (var index in indices) visited[index] = false;
     }
 
     private Image GetImage() => _sourceImage ?? throw new ObjectDisposedException(nameof(ImageSelector));
@@ -187,9 +188,44 @@ public sealed class ImageSelector(Image sourceImage, Image? guideImage = null) :
         _sourceImage = null;
         _guideImage = null;
         _selectablePixels = null;
-        _visitMarks = null;
-        _queue = null;
+        _visitedPixels = null;
+        _queue = default;
         _disposed = true;
         GC.SuppressFinalize(this);
+    }
+
+    private struct PixelQueue(int initialCapacity, int maxLength)
+    {
+        private int[] _buffer = new int[Math.Max(initialCapacity, 1)];
+        private int _head;
+        private int _tail;
+
+        public readonly bool HasPending => _head < _tail;
+
+        public readonly int Count => _tail;
+
+        public readonly ReadOnlySpan<int> VisitedIndices => _buffer.AsSpan(0, _tail);
+
+        public int Dequeue() => _buffer[_head++];
+
+        public void Reset()
+        {
+            _head = 0;
+            _tail = 0;
+        }
+
+        public void Enqueue(int index)
+        {
+            if (_tail == _buffer.Length) Grow();
+
+            _buffer[_tail++] = index;
+        }
+
+        private void Grow()
+        {
+            var capacity = _tail < maxLength / 2 ? Math.Max(_tail * 2, 1024) : maxLength;
+
+            Array.Resize(ref _buffer, capacity);
+        }
     }
 }

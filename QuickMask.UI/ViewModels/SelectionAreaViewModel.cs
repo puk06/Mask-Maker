@@ -1,6 +1,5 @@
 using QuickMask.Core.Localization;
 using QuickMask.Core.Models;
-using QuickMask.Core.Utils;
 using QuickMask.UI.Localization;
 using ReactiveUI;
 using ReactiveUI.Primitives;
@@ -22,7 +21,7 @@ public partial class SelectionAreaViewModel : ReactiveObject
     public IReactiveCommand RemoveCommand { get; }
 
     public SelectionArea Area { get; }
-    public int PixelCount => BitArrayUtils.GetCount(Area.Mask, true);
+    public int PixelCount => Area.PixelCount;
 
     private readonly Action<SelectionAreaViewModel, int> _move;
     private readonly Action<SelectionAreaViewModel> _remove;

@@ -1,8 +1,6 @@
-using System.Collections;
 using ErrorOr;
 using QuickMask.Core.Localization;
 using QuickMask.Core.Models;
-using QuickMask.Core.Utils;
 using SkiaSharp;
 
 namespace QuickMask.Core.Services;
@@ -92,13 +90,15 @@ public sealed class QuickMask : IDisposable
         return Result.Success;
     }
 
-    public BitArray MergeSelections()
+    public PixelMask MergeSelections()
     {
-        var result = new BitArray(Image?.PixelCount ?? UVImage?.PixelCount ?? 0);
+        var result = new PixelMask(Image?.PixelCount ?? UVImage?.PixelCount ?? 0);
         foreach (var selection in Selections)
         {
             if (!selection.IsEnabled) continue;
-            BitArrayUtils.Merge(ref result, selection.Mask, selection.IsErase);
+
+            if (selection.IsErase) result.AndNot(selection.Mask);
+            else result.Or(selection.Mask);
         }
         return result;
     }
