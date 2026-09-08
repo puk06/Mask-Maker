@@ -23,7 +23,7 @@
 				<MenuItem Header="{Binding [Main.MenuBar.UVImage.UnloadUV], Source={x:Static loc:Localizer.Instance}}" Command="{Binding UnloadUvImageCommand}"/>
 			</MenuItem>
 			<MenuItem Header="{Binding [Main.MenuBar.Tool.Title], Source={x:Static loc:Localizer.Instance}}">
-				<MenuItem Header="{Binding [Main.MenuBar.Tool.SelectAllObject], Source={x:Static loc:Localizer.Instance}}"/>
+				<MenuItem Header="{Binding [Main.MenuBar.Tool.DetectAllObjects], Source={x:Static loc:Localizer.Instance}}" Command="{Binding SelectAllObjectsCommand}"/>
 			</MenuItem>
 		</Menu>
 		

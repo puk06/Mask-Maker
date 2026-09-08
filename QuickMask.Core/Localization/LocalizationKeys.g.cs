@@ -76,6 +76,7 @@ public static class Loc
         public static class SelectionArea
         {
             public const string Added = "Success.SelectionArea.Added";
+            public const string AddedMultiple = "Success.SelectionArea.AddedMultiple";
         }
         public static class BackgroundPoint
         {

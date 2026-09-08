@@ -11,15 +11,13 @@
 	"Main.MenuBar.UVImage.UnloadUV": "UV画像の読み込みを解除する",
 
 	"Main.MenuBar.Tool.Title": "ツール",
-	"Main.MenuBar.Tool.SelectAllObject": "全オブジェクトを自動検出",
+	"Main.MenuBar.Tool.DetectAllObjects": "全オブジェクトを自動検出",
 
 	"Main.SourceTexture.Label": "テクスチャ画像",
 	"Main.MaskTexture.Label": "マスク画像",
 
 	"Main.LoadImage": "画像を読み込む",
 	"Main.LoadUVImage": "UV画像を読み込む",
-
-	"Warning.SelectAllObjectsWithoutUV": "UV画像を読み込んでいない状態でオブジェクトを選択しようとしています。UV画像以外はオブジェクトを正確に検出できない可能性があります。続行しますか？",
 
 	"SelectionArea.Title": "選択エリア",
 	"SelectionArea.Description": "順番がマスク結果に反映されます",
@@ -30,6 +28,7 @@
 	"SelectionArea.PixelCount": "{0} ピクセル",
 
 	"Success.SelectionArea.Added": "{0} を追加しました ({1}, {2})。合計: {3}個の選択エリア",
+	"Success.SelectionArea.AddedMultiple": "{0}個の選択エリアを追加しました。合計: {1}個の選択エリア",
 	"Success.BackgroundPoint.Set": "背景ポイントを設定しました ({0}, {1})",
 	"Success.MaskSaved": "マスク画像を保存しました: {0}",
 

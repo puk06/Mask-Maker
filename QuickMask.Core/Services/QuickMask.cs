@@ -90,6 +90,26 @@ public sealed class QuickMask : IDisposable
         return Result.Success;
     }
 
+    public ErrorOr<SelectionArea[]> SelectAllObjects(bool erase = false)
+    {
+        if (Image == null) return Error.Failure(description: Loc.Error.NoImageLoaded);
+
+        var selector = _imageSelector ??= new ImageSelector(Image, guideImage: UVImage);
+        var initializeResult = selector.Initialize(BackgroundPoint);
+        if (initializeResult.IsError) return Error.Failure(description: initializeResult.FirstError.Description);
+
+        var result = selector.DetectAllObjects();
+        if (result.IsError) return Error.Failure(description: result.FirstError.Description);
+
+        foreach (var selection in result.Value)
+        {
+            selection.IsErase = erase;
+            Selections.Add(selection);
+        }
+
+        return result;
+    }
+
     public PixelMask MergeSelections()
     {
         var result = new PixelMask(Image?.PixelCount ?? UVImage?.PixelCount ?? 0);

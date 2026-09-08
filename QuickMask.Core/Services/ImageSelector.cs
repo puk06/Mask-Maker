@@ -1,3 +1,4 @@
+using System.Numerics;
 using ErrorOr;
 using QuickMask.Core.Localization;
 using QuickMask.Core.Models;
@@ -123,14 +124,65 @@ public sealed class ImageSelector(Image sourceImage, Image? guideImage = null) :
 
         if (!ValidatePoint(point, image)) return Error.Failure(description: Loc.Error.ImageSelector.InvalidSelectionPoint);
 
+        var startIndex = PixelUtils.GetPixelIndex(point.X, point.Y, image.Width);
+        if (!_selectablePixels[startIndex]) return Error.Failure(description: Loc.Error.ImageSelector.PointNotSelectable);
+
+        return FloodFill(image, startIndex, _selectablePixels, _visitedPixels);
+    }
+
+    /// <summary>Detects every four-connected object, ordered from the top-left pixel.</summary>
+    public ErrorOr<SelectionArea[]> DetectAllObjects()
+    {
+        var image = GetImage();
+        if (!_initialized || _selectablePixels == null || _visitedPixels == null)
+        {
+            return Error.Failure(description: Loc.Error.ImageSelector.NotProperlyInitialized);
+        }
+
+        var unprocessed = new PixelMask(_selectablePixels.Length);
+        unprocessed.Or(_selectablePixels);
+
+        var results = new List<SelectionArea>();
+        var searchIndex = 0;
+
+        while (true)
+        {
+            var startIndex = FindNextSetBit(unprocessed, searchIndex);
+            if (startIndex < 0) break;
+
+            var selected = FloodFill(image, startIndex, _selectablePixels, _visitedPixels);
+            results.Add(selected);
+
+            unprocessed.AndNot(selected.Mask);
+            searchIndex = startIndex + 1;
+        }
+
+        return results.ToArray();
+    }
+
+    private static int FindNextSetBit(PixelMask mask, int startIndex)
+    {
+        var words = mask.Words;
+        var wordIndex = startIndex >> 6;
+        var bit = startIndex & 63;
+
+        while (wordIndex < words.Length)
+        {
+            var word = words[wordIndex] >> bit;
+            if (word != 0) return (wordIndex << 6) + bit + BitOperations.TrailingZeroCount(word);
+
+            wordIndex++;
+            bit = 0;
+        }
+
+        return -1;
+    }
+
+    private SelectionArea FloodFill(Image image, int startIndex, PixelMask selectable, PixelMask visited)
+    {
         var width = image.Width;
         var height = image.Height;
 
-        var startIndex = PixelUtils.GetPixelIndex(point.X, point.Y, width);
-        if (!_selectablePixels[startIndex]) return Error.Failure(description: Loc.Error.ImageSelector.PointNotSelectable);
-
-        var visited = _visitedPixels;
-        var selectable = _selectablePixels;
         var selected = new SelectionArea(width, height);
         var mask = selected.Mask;
 

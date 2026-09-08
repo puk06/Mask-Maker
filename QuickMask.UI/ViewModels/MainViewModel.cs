@@ -31,6 +31,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     public IReactiveCommand UnloadUvImageCommand { get; }
     public IReactiveCommand SaveMaskCommand { get; }
     public IReactiveCommand ClearSelectionsCommand { get; }
+    public IReactiveCommand SelectAllObjectsCommand { get; }
 
     public MainViewModel(Services.IFileDialogService dialogs)
     {
@@ -41,6 +42,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         UnloadUvImageCommand = ReactiveCommand.Create(UnloadUvImage);
         SaveMaskCommand = ReactiveCommand.CreateFromTask(SaveMaskAsync);
         ClearSelectionsCommand = ReactiveCommand.Create(ClearSelections);
+        SelectAllObjectsCommand = ReactiveCommand.Create(SelectAllObjects);
 
         UpdateWindowTitle();
     }
@@ -159,6 +161,29 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         ShowStatus(Localizer.Instance.Get(Loc.Success.MaskSaved, [Path.GetFileName(path)]));
     }
 
+    private void SelectAllObjects()
+    {
+        if (!_maker.ImageLoaded)
+        {
+            ShowStatus(Localizer.Instance[Loc.Error.NoImageLoaded]);
+            return;
+        }
+
+        _maker.BackgroundPoint = new Point(BackgroundX, BackgroundY);
+
+        var result = _maker.SelectAllObjects();
+        if (result.IsError)
+        {
+            ShowStatus(Localizer.Instance[result.FirstError.Description]);
+            return;
+        }
+
+        AddLatestSelections(result.Value.Length);
+        RefreshMaskPreview();
+
+        ShowStatus(Localizer.Instance.Get(Loc.Success.SelectionArea.AddedMultiple, [result.Value.Length.ToString(), SelectionAreas.Count.ToString()]));
+    }
+
     private void ClearSelections()
     {
         _maker.ClearSelections();
@@ -168,10 +193,15 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         UpdateWindowTitle();
     }
 
-    private void AddLatestSelection()
+    private void AddLatestSelection() => AddLatestSelections(1);
+
+    private void AddLatestSelections(int count)
     {
-        var area = _maker.Selections[^1];
-        SelectionAreas.Add(new(area, MoveSelection, RemoveSelection, RefreshSelectionState));
+        var start = _maker.Selections.Count - count;
+
+        for (var i = 0; i < count; i++)
+            SelectionAreas.Add(new(_maker.Selections[start + i], MoveSelection, RemoveSelection, RefreshSelectionState));
+
         UpdateSelectionIndexes();
         UpdateWindowTitle();
     }
