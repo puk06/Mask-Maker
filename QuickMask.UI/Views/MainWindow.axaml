@@ -3,6 +3,7 @@
 	xmlns:vm="using:QuickMask.UI.ViewModels"
 	xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+	xmlns:loc="using:QuickMask.UI.Localization"
 	x:Class="QuickMask.UI.Views.MainWindow"
 	x:DataType="vm:MainViewModel"
 	DragDrop.AllowDrop="True"
@@ -16,18 +17,22 @@
 	MinHeight="700"
 	FontFamily="Inter">
 
-	<Grid Margin="24" RowSpacing="16">
-		<Grid Grid.Row="0" ColumnDefinitions="*,340" ColumnSpacing="16">
+	<DockPanel>
+		<Menu DockPanel.Dock="Top">
+			<MenuItem Header="{Binding [Main.MenuBar.UVImage.Title], Source={x:Static loc:Localizer.Instance}}">
+				<MenuItem Header="{Binding [Main.MenuBar.UVImage.UnloadUV], Source={x:Static loc:Localizer.Instance}}" Command="{Binding UnloadUvImageCommand}"/>
+			</MenuItem>
+			<MenuItem Header="{Binding [Main.MenuBar.Tool.Title], Source={x:Static loc:Localizer.Instance}}">
+				<MenuItem Header="{Binding [Main.MenuBar.Tool.SelectAllObject], Source={x:Static loc:Localizer.Instance}}"/>
+			</MenuItem>
+		</Menu>
+		
+		<Grid Grid.Row="0" ColumnDefinitions="*,340" ColumnSpacing="16" Margin="24" RowSpacing="16">
 			<Grid Grid.Column="0" RowDefinitions="*,Auto" RowSpacing="16">
 				<Grid ColumnDefinitions="*,*" ColumnSpacing="16">
 					<sukiUi:GlassCard Grid.Column="0">
 						<Grid RowDefinitions="Auto,*">
-							<Grid ColumnDefinitions="*,Auto">
-								<TextBlock Text="テクスチャ画像" Foreground="#F5F5F5" FontSize="12" FontWeight="Bold" />
-								<Border Grid.Column="1" Background="#303030" CornerRadius="6" Padding="10,4">
-									<TextBlock Text="左クリックで選択" Foreground="#D7C2FF" FontSize="10" FontWeight="SemiBold" />
-								</Border>
-							</Grid>
+							<TextBlock Text="{Binding [Main.SourceTexture.Label], Source={x:Static loc:Localizer.Instance}}" Foreground="#F5F5F5" FontSize="12" FontWeight="Bold" />
 
 							<Border Grid.Row="1" Background="#121212" CornerRadius="6" Margin="0,12,0,0" PointerPressed="SourcePointerPressed">
 								<Image Source="{Binding SourcePreview}" Stretch="Uniform" />
@@ -37,12 +42,7 @@
 
 					<sukiUi:GlassCard Grid.Column="1">
 						<Grid RowDefinitions="Auto,*">
-							<Grid ColumnDefinitions="*,Auto">
-								<TextBlock Text="生成後のマスク" Foreground="#F5F5F5" FontSize="12" FontWeight="Bold" />
-								<Border Grid.Column="1" Background="#263A2B" CornerRadius="6" Padding="10,4">
-									<TextBlock Text="ライブプレビュー" Foreground="#A5D6A7" FontSize="10" FontWeight="SemiBold" />
-								</Border>
-							</Grid>
+							<TextBlock Text="{Binding [Main.MaskTexture.Label], Source={x:Static loc:Localizer.Instance}}" Foreground="#F5F5F5" FontSize="12" FontWeight="Bold" />
 							<Border Grid.Row="1" Background="#121212" CornerRadius="6" Margin="0,12,0,0">
 								<Image Source="{Binding MaskPreview}" Stretch="Uniform" />
 							</Border>
@@ -57,16 +57,16 @@
 
 			<Grid Grid.Column="1" RowDefinitions="Auto,*,Auto,Auto" RowSpacing="14">
 				<Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-					<Button Classes="Flat" Content="画像を読み込む" Command="{Binding OpenImageCommand}" />
-					<Button Grid.Column="1" Classes="Outlined" Content="UVを読み込む" Command="{Binding OpenUvImageCommand}" />
+					<Button Classes="Flat" Content="{Binding [Main.LoadImage], Source={x:Static loc:Localizer.Instance}}" Command="{Binding OpenImageCommand}" />
+					<Button Grid.Column="1" Classes="Outlined" Content="{Binding [Main.LoadUVImage], Source={x:Static loc:Localizer.Instance}}" Command="{Binding OpenUvImageCommand}" />
 				</Grid>
 
 				<sukiUi:GlassCard Grid.Row="1">
 					<Grid RowDefinitions="Auto,*" RowSpacing="10">
 						<Grid ColumnDefinitions="*,Auto">
 							<Grid RowDefinitions="Auto,Auto">
-								<TextBlock Text="選択エリア" FontSize="12" FontWeight="Bold" Foreground="#F5F5F5" />
-								<TextBlock Grid.Row="1" Text="順番がマスク結果に反映されます" FontSize="11" Foreground="#909090" />
+								<TextBlock Text="{Binding [SelectionArea.Title], Source={x:Static loc:Localizer.Instance}}" FontSize="12" FontWeight="Bold" Foreground="#F5F5F5" />
+								<TextBlock Grid.Row="1" Text="{Binding [SelectionArea.Description], Source={x:Static loc:Localizer.Instance}}" FontSize="11" Foreground="#909090" />
 							</Grid>
 							<TextBlock Grid.Column="1" Text="{Binding SelectionAreas.Count, StringFormat='{}{0:N0}'}" FontSize="20" FontWeight="Bold" Foreground="#8AB4F8" VerticalAlignment="Center" />
 						</Grid>
@@ -84,8 +84,8 @@
 										<sukiUi:GlassCard Classes="Primary" IsInteractive="True">
 											<sukiUi:GlassCard.ContextMenu>
 												<ContextMenu>
-													<MenuItem Header="選択 / 消去エリアの切り換え" Command="{Binding ToggleEraseCommand}" />
-													<MenuItem Header="削除" Command="{Binding RemoveCommand}" />
+													<MenuItem Header="{Binding [SelectionArea.ContextMenu.ToggleAreaType], Source={x:Static loc:Localizer.Instance}}" Command="{Binding ToggleEraseCommand}" />
+													<MenuItem Header="{Binding [SelectionArea.ContextMenu.Remove], Source={x:Static loc:Localizer.Instance}}" Command="{Binding RemoveCommand}" />
 												</ContextMenu>
 											</sukiUi:GlassCard.ContextMenu>
 
@@ -94,7 +94,7 @@
 
 												<Grid Grid.Column="2" RowDefinitions="Auto,Auto">
 													<TextBlock Text="{Binding TypeText}" FontSize="16" FontWeight="Bold" Foreground="#F5F5F5" />
-													<TextBlock Grid.Row="1" Text="{Binding PixelCount, StringFormat='{}{0:N0} ピクセル'}" FontSize="11" Foreground="#909090" />
+													<TextBlock Grid.Row="1" Text="{Binding PixelCountText }" FontSize="11" Foreground="#909090" />
 												</Grid>
 
 												<Grid Grid.Column="3" ColumnDefinitions="Auto,Auto" ColumnSpacing="3">
@@ -110,9 +110,9 @@
 					</Grid>
 				</sukiUi:GlassCard>
 
-				<Button Grid.Row="2" Classes="Outlined" Content="選択エリアをクリア" HorizontalAlignment="Stretch" Command="{Binding ClearSelectionsCommand}" />
-				<Button Grid.Row="3" Classes="Flat Large" Content="マスクを出力" HorizontalAlignment="Stretch" Command="{Binding SaveMaskCommand}" />
+				<Button Grid.Row="2" Classes="Outlined" Content="{Binding [SelectionArea.ClearSelection], Source={x:Static loc:Localizer.Instance}}" HorizontalAlignment="Stretch" Command="{Binding ClearSelectionsCommand}" />
+				<Button Grid.Row="3" Classes="Flat Large" Content="{Binding [Main.GenerateMask], Source={x:Static loc:Localizer.Instance}}" HorizontalAlignment="Stretch" Command="{Binding SaveMaskCommand}" />
 			</Grid>
 		</Grid>
-	</Grid>
+	</DockPanel>
 </sukiUi:SukiWindow>

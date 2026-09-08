@@ -20,13 +20,14 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     public bool HasSourceImage => _maker.Image is not null;
     [Reactive] public partial Bitmap? MaskPreview { get; private set; }
     public ObservableCollection<SelectionAreaViewModel> SelectionAreas { get; } = [];
-    [Reactive] public partial string Status { get; set; } = "画像を開いて選択を開始してください。";
+    [Reactive] public partial string Status { get; set; } = string.Empty;
     [Reactive] public partial string WindowTitle { get; set; } = string.Empty;
     [Reactive] public partial int BackgroundX { get; set; }
     [Reactive] public partial int BackgroundY { get; set; }
 
     public IReactiveCommand OpenImageCommand { get; }
     public IReactiveCommand OpenUvImageCommand { get; }
+    public IReactiveCommand UnloadUvImageCommand { get; }
     public IReactiveCommand SaveMaskCommand { get; }
     public IReactiveCommand ClearSelectionsCommand { get; }
 
@@ -35,6 +36,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         _dialogs = dialogs;
         OpenImageCommand = ReactiveCommand.CreateFromTask(OpenImageAsync);
         OpenUvImageCommand = ReactiveCommand.CreateFromTask(OpenUvImageAsync);
+        UnloadUvImageCommand = ReactiveCommand.Create(_maker.UnloadUVGuideImage);
         SaveMaskCommand = ReactiveCommand.CreateFromTask(SaveMaskAsync);
         ClearSelectionsCommand = ReactiveCommand.Create(ClearSelections);
 
@@ -44,18 +46,19 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     private async Task OpenImageAsync()
     {
         var path = await _dialogs.PickImageAsync();
-        if (path is null) return;
+        if (path == null) return;
+
         await LoadImagePathAsync(path);
     }
-
     public async Task LoadImagePathAsync(string path)
     {
-        await _maker.LoadImage(path);
-        if (_maker.LastError is not null)
+        var result = await _maker.LoadImage(path);
+        if (result.IsError)
         {
-            ShowStatus(_maker.LastError);
+            ShowStatus(result.FirstError.Description);
             return;
         }
+
         SelectionAreas.Clear();
         UpdateWindowTitle();
         SetSourcePreview(path);
@@ -66,20 +69,20 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     private async Task OpenUvImageAsync()
     {
         var path = await _dialogs.PickImageAsync();
-        if (path is null) return;
+        if (path == null) return;
+
         await LoadUvImagePathAsync(path);
     }
-
     public async Task LoadUvImagePathAsync(string path)
     {
-        await _maker.LoadUVGuideImage(path);
-        if (_maker.LastError is not null)
+        var result = await _maker.LoadUVGuideImage(path);
+        if (result.IsError)
         {
-            ShowStatus(_maker.LastError);
+            ShowStatus(result.FirstError.Description);
             return;
         }
 
-        if (_maker.Image is null)
+        if (_maker.ImageLoaded)
         {
             ShowStatus("UVガイド画像が読み込まれました。ソース画像を開いて選択を開始してください。");
         }
@@ -95,24 +98,24 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         if (point is null) return;
 
         _maker.BackgroundPoint = new Point(BackgroundX, BackgroundY);
-        if (_maker.Select(point.Value, erase: erase))
+        var result = _maker.Select(point.Value, erase: erase);
+        if (result.IsError)
         {
-            AddLatestSelection();
-            RefreshMaskPreview();
+            ShowStatus(result.FirstError.Description);
+            return;
+        }
 
-            var areaType = erase ? "消去エリア" : "選択エリア";
-            ShowStatus($"{areaType}を追加しました ({point.Value.X}, {point.Value.Y})。合計: {SelectionAreas.Count}個の選択エリア");
-        }
-        else
-        {
-            ShowStatus("そのピクセルは背景または画像の外です。");
-        }
+        AddLatestSelection();
+        RefreshMaskPreview();
+
+        var areaType = erase ? "消去エリア" : "選択エリア";
+        ShowStatus($"{areaType}を追加しました ({point.Value.X}, {point.Value.Y})。合計: {SelectionAreas.Count}個の選択エリア");
     }
 
     public void SetBackgroundAt(double x, double y, double displayWidth, double displayHeight)
     {
         var point = GetImagePoint(x, y, displayWidth, displayHeight);
-        if (point is null) return;
+        if (point == null) return;
 
         BackgroundX = point.Value.X;
         BackgroundY = point.Value.Y;
@@ -123,7 +126,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     private Point? GetImagePoint(double x, double y, double displayWidth, double displayHeight)
     {
         var image = _maker.Image;
-        if (image is null || displayWidth <= 0 || displayHeight <= 0) return null;
+        if (image == null || displayWidth <= 0 || displayHeight <= 0) return null;
 
         var scale = Math.Min(displayWidth / image.Width, displayHeight / image.Height);
         var contentWidth = image.Width * scale;
@@ -140,15 +143,22 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
     private async Task SaveMaskAsync()
     {
-        if (_maker.Image is null && _maker.UVImage is null)
+        if (!_maker.ImageLoaded)
         {
             ShowStatus("画像を読み込んでから保存してください。");
             return;
         }
 
         var path = await _dialogs.PickSavePathAsync();
-        if (path is null) return;
-        _maker.SaveMask(path);
+        if (path == null) return;
+
+        var result = _maker.SaveMask(path);
+        if (result.IsError)
+        {
+            ShowStatus(result.FirstError.Description);
+            return;
+        }
+
         ShowStatus($"マスク画像が保存されました: {Path.GetFileName(path)}");
     }
 
@@ -158,6 +168,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         SelectionAreas.Clear();
         RefreshMaskPreview();
         ShowStatus("選択エリアがクリアされました。");
+        UpdateWindowTitle();
     }
 
     private void AddLatestSelection()
@@ -215,14 +226,22 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     private void RefreshMaskPreview()
     {
         MaskPreview?.Dispose();
-        if (_maker.Image is null && _maker.UVImage is null)
+        if (_maker.Image == null)
         {
             MaskPreview = null;
             return;
         }
 
-        using var mask = _maker.GenerateMask();
-        MaskPreview = CreatePreviewBitmap(mask);
+        var result = _maker.GenerateMask();
+        if (result.IsError)
+        {
+            MaskPreview = null;
+            ShowStatus(result.FirstError.Description);
+            return;
+        }
+
+        MaskPreview = CreatePreviewBitmap(result.Value);
+        result.Value.Dispose();
     }
 
     private static Bitmap CreatePreviewBitmap(SKBitmap source)

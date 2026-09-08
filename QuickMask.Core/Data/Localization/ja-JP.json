@@ -1,0 +1,32 @@
+{
+	"LanguageName": "日本語",
+	"LanguagePriority": "0",
+
+	"Main.MenuBar.UVImage.Title": "UV画像",
+	"Main.MenuBar.UVImage.UnloadUV": "UV画像の読み込みを解除する",
+
+	"Main.MenuBar.Tool.Title": "ツール",
+	"Main.MenuBar.Tool.SelectAllObject": "全オブジェクトを自動検出",
+
+	"Main.SourceTexture.Label": "テクスチャ画像",
+	"Main.MaskTexture.Label": "マスク画像",
+
+	"Main.LoadImage": "画像を読み込む",
+	"Main.LoadUVImage": "UV画像を読み込む",
+
+	"Warning.SelectAllObjectsWithoutUV": "UV画像を読み込んでいない状態でオブジェクトを選択しようとしています。UV画像以外はオブジェクトを正確に検出できない可能性があります。続行しますか？",
+
+	"SelectionArea.Title": "選択エリア",
+	"SelectionArea.Description": "順番がマスク結果に反映されます",
+
+	"SelectionArea.AreaType.Selection": "選択エリア",
+	"SelectionArea.AreaType.Eraser": "消去エリア",
+
+	"SelectionArea.PixelCount": "{0} ピクセル",
+
+	"SelectionArea.ContextMenu.ToggleAreaType": "選択 / 消去エリアの切り換え",
+	"SelectionArea.ContextMenu.Remove": "削除",
+
+	"SelectionArea.ClearSelection": "選択エリアをクリア",
+	"Main.GenerateMask": "マスクを出力"
+}

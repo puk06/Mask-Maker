@@ -8,7 +8,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="ErrorOr" Version="2.1.1" />
 		<PackageReference Include="SkiaSharp" Version="4.151.2" />
 	</ItemGroup>
 
+	<Target Name="GenerateLocalizationKeys" BeforeTargets="BeforeBuild">
+		<Exec Command="dotnet run --project ../Tools/LocalizationKeyGenerator/LocalizationKeyGenerator.csproj" />
+	</Target>
 </Project>

@@ -1,3 +1,4 @@
+using ErrorOr;
 using QuickMask.Core.Services;
 using SkiaSharp;
 
@@ -14,22 +15,31 @@ public class Image(string filePath) : IDisposable
     public int Height { get; private set; }
     public int PixelCount => Width * Height;
 
-    public async Task Load()
+    public async Task<ErrorOr<Success>> Load()
     {
-        if (_loaded) return;
-
-        using (var bitmap = await ImageService.LoadImageAsync(_filePath))
+        try
         {
-            Width = bitmap.Width;
-            Height = bitmap.Height;
+            if (_loaded) return Error.Failure(description: "Image is already loaded.");
 
-            var pixels = bitmap.Pixels;
+            using (var bitmap = await ImageService.LoadImageAsync(_filePath))
+            {
+                Width = bitmap.Width;
+                Height = bitmap.Height;
 
-            _pixels = new SKColor[pixels.Length];
-            pixels.CopyTo(_pixels);
+                var pixels = bitmap.Pixels;
+
+                _pixels = new SKColor[pixels.Length];
+                pixels.CopyTo(_pixels);
+            }
+
+            _loaded = true;
+
+            return Result.Success;
         }
-
-        _loaded = true;
+        catch (Exception ex)
+        {
+            return Error.Failure(description: $"Failed to load image: {ex.Message}");
+        }
     }
 
     public ReadOnlySpan<SKColor> AsSpan()

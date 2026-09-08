@@ -25,6 +25,12 @@
 		<PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.2" />
 		<PackageReference Include="ReactiveUI.Avalonia" Version="12.1.1" />
 
+		<Content Include="..\QuickMask.Core\Data\Localization\**\*.json">
+			<Link>locales\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<CopyToPublishDirectory>Always</CopyToPublishDirectory>
+		</Content>
+
 		<AvaloniaResource Include="Assets\Internal\**" />
 	</ItemGroup>
 </Project>

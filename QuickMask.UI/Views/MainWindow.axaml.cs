@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
+using QuickMask.UI.Localization;
 using QuickMask.UI.ViewModels;
 using SukiUI.Controls;
 
@@ -10,6 +11,9 @@ public partial class MainWindow : SukiWindow
 {
     public MainWindow()
     {
+        Localizer.Instance.LoadFromFolder(Path.Combine(AppContext.BaseDirectory, "locales"));
+        Localizer.Instance.SetLanguage(0);
+
         InitializeComponent();
     }
 

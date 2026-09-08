@@ -1,4 +1,5 @@
 using System.Collections;
+using ErrorOr;
 using QuickMask.Core.Models;
 using QuickMask.Core.Utils;
 using SkiaSharp;
@@ -6,11 +7,10 @@ using SkiaSharp;
 namespace QuickMask.Core.Services;
 
 /// <summary>Finds four-connected objects in an image.</summary>
-public sealed class ImageSelector(Image sourceImage, bool isUv = false, Image? guideImage = null) : IDisposable
+public sealed class ImageSelector(Image sourceImage, Image? guideImage = null) : IDisposable
 {
     private Image? _sourceImage = sourceImage;
     private Image? _guideImage = guideImage;
-    private readonly bool _isUv = isUv;
     private Point _backgroundPoint;
     private byte[]? _selectablePixels;
     private int[]? _visitMarks;
@@ -19,26 +19,27 @@ public sealed class ImageSelector(Image sourceImage, bool isUv = false, Image? g
     private bool _initialized;
     private bool _disposed;
 
-    public bool Initialize(Point backgroundPoint)
+    public ErrorOr<Success> Initialize(Point backgroundPoint)
     {
         var image = GetImage();
-        if (!ValidatePoint(backgroundPoint, image)) return false;
+        if (!ValidatePoint(backgroundPoint, image)) return Error.Failure(description: "Invalid background point.");
 
-        if (_guideImage is not null && (_guideImage.Width != image.Width || _guideImage.Height != image.Height))
-            throw new ArgumentException("The guide image dimensions must match the source image.");
+        if (_guideImage != null && (_guideImage.Width != image.Width || _guideImage.Height != image.Height))
+            return Error.Failure(description: "The guide image dimensions must match the source image.");
 
         // Selecting several objects with the same background must not rebuild this mask.
-        if (_initialized && _backgroundPoint == backgroundPoint) return true;
+        if (_initialized && _backgroundPoint == backgroundPoint) return Result.Success;
 
         _backgroundPoint = backgroundPoint;
-        _selectablePixels = _isUv ? BuildUvSelectablePixels(image, backgroundPoint) : BuildImageSelectablePixels(image, backgroundPoint);
-        if (!_isUv && _guideImage is not null) ApplyUvGuide(_selectablePixels, _guideImage, backgroundPoint);
+        _selectablePixels = BuildImageSelectablePixels(image, backgroundPoint);
+        if (_guideImage != null) ApplyUvGuide(_selectablePixels, _guideImage, backgroundPoint);
+
         _visitMarks = new int[image.PixelCount];
         _queue = new int[image.PixelCount];
         _visitToken = 0;
         _initialized = true;
 
-        return true;
+        return Result.Success;
     }
 
     private static byte[] BuildImageSelectablePixels(Image image, Point backgroundPoint)
@@ -114,14 +115,18 @@ public sealed class ImageSelector(Image sourceImage, bool isUv = false, Image? g
         queue[tail++] = index;
     }
 
-    public SelectionArea? Select(Point point)
+    public ErrorOr<SelectionArea> Select(Point point)
     {
         var image = GetImage();
-        if (!_initialized || _selectablePixels is null || _visitMarks is null || _queue is null) return null;
-        if (!ValidatePoint(point, image)) return null;
+        if (!_initialized || _selectablePixels == null || _visitMarks == null || _queue == null)
+        {
+            return Error.Failure(description: "Image selector is not properly initialized.");
+        }
+
+        if (!ValidatePoint(point, image)) return Error.Failure(description: "Invalid selection point.");
 
         var startIndex = PixelUtils.GetPixelIndex(point.X, point.Y, image.Width);
-        if (_selectablePixels[startIndex] == 0) return null;
+        if (_selectablePixels[startIndex] == 0) return Error.Failure(description: "The selected point is not part of any selectable object.");
 
         var token = NextVisitToken();
         var selected = new SelectionArea(image.Width, image.Height);

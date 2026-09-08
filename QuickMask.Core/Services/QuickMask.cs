@@ -1,24 +1,30 @@
 using System.Collections;
+using ErrorOr;
 using QuickMask.Core.Models;
 using QuickMask.Core.Utils;
+using SkiaSharp;
 
 namespace QuickMask.Core.Services;
 
 public sealed class QuickMask : IDisposable
 {
     public Image? Image { get; private set; }
+    public bool ImageLoaded => Image != null;
+
     public Image? UVImage { get; private set; }
-    public string? LastError { get; private set; }
+    public bool UVImageLoaded => UVImage != null;
+
     public Point BackgroundPoint { get; set; }
 
     private ImageSelector? _imageSelector = null;
 
     public List<SelectionArea> Selections { get; } = [];
 
-    public async Task LoadImage(string filePath)
+    public async Task<ErrorOr<Success>> LoadImage(string filePath)
     {
         var candidate = new Image(filePath);
-        await candidate.Load();
+        var result = await candidate.Load();
+        if (result.IsError) return result;
 
         Selections.Clear();
 
@@ -29,23 +35,26 @@ public sealed class QuickMask : IDisposable
 
         UVImage?.Dispose();
         UVImage = candidate;
+
+        return Result.Success;
     }
-    public async Task LoadUVGuideImage(string filePath)
+    public async Task<ErrorOr<Success>> LoadUVGuideImage(string filePath)
     {
         var candidate = new Image(filePath);
         await candidate.Load();
 
-        if (Image is not null && !HasMatchingDimensions(Image, candidate))
+        if (Image != null && !HasMatchingDimensions(Image, candidate))
         {
             candidate.Dispose();
-            LastError = "テクスチャ画像とUVガイド画像の解像度が一致していません。";
-            return;
+            return Error.Failure(description: "Texture image and UV guide image dimensions do not match.");
         }
 
         DisposeImageSelector(ref _imageSelector);
 
         UVImage?.Dispose();
         UVImage = candidate;
+
+        return Result.Success;
     }
     public void UnloadUVGuideImage()
     {
@@ -54,26 +63,30 @@ public sealed class QuickMask : IDisposable
         UVImage?.Dispose();
         UVImage = null;
     }
+
     private static void DisposeImageSelector(ref ImageSelector? selector)
     {
         selector?.Dispose();
         selector = null;
     }
 
-    public bool Select(Point point, bool erase = false)
+    public ErrorOr<Success> Select(Point point, bool erase = false)
     {
-        if (Image == null) return false;
+        if (Image == null) return Error.Failure(description: "No image loaded.");
 
         var selector = _imageSelector ??= new ImageSelector(Image, guideImage: UVImage);
-        selector.Initialize(BackgroundPoint);
+        var initializeResult = selector.Initialize(BackgroundPoint);
+        if (initializeResult.IsError) return initializeResult;
 
-        var selection = selector.Select(point);
-        if (selection == null) return false;
+        var result = selector.Select(point);
+        if (result.IsError) return Error.Failure(description: result.FirstError.Description);
+
+        var selection = result.Value;
 
         selection.IsErase = erase;
         Selections.Add(selection);
 
-        return true;
+        return Result.Success;
     }
 
     public BitArray MergeSelections()
@@ -86,9 +99,7 @@ public sealed class QuickMask : IDisposable
         }
         return result;
     }
-
     public void ClearSelections() => Selections.Clear();
-
     public void MoveSelection(int index, int offset)
     {
         var targetIndex = index + offset;
@@ -97,16 +108,19 @@ public sealed class QuickMask : IDisposable
         (Selections[index], Selections[targetIndex]) = (Selections[targetIndex], Selections[index]);
     }
 
-    private static bool HasMatchingDimensions(Image first, Image second) =>
-        first.Width == second.Width && first.Height == second.Height;
+    private static bool HasMatchingDimensions(Image first, Image second) => first.Width == second.Width && first.Height == second.Height;
 
-    public SkiaSharp.SKBitmap GenerateMask() => MaskGenerator.Generate(MergeSelections(), Image?.Width ?? 0, Image?.Height ?? 0);
-
-    public void SaveMask(string filePath, SkiaSharp.SKEncodedImageFormat format = SkiaSharp.SKEncodedImageFormat.Png, int quality = 100)
+    public ErrorOr<SKBitmap> GenerateMask()
     {
-        var width = Image?.Width ??  0;
-        var height = Image?.Height ??  0;
-        MaskGenerator.Save(MergeSelections(), width, height, filePath, format, quality);
+        var width = Image?.Width ?? 0;
+        var height = Image?.Height ?? 0;
+        return MaskGenerator.Generate(MergeSelections(), width, height);
+    }
+    public ErrorOr<Success> SaveMask(string filePath, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100)
+    {
+        var width = Image?.Width ?? 0;
+        var height = Image?.Height ?? 0;
+        return MaskGenerator.Save(MergeSelections(), width, height, filePath, format, quality);
     }
 
     public void Dispose()
