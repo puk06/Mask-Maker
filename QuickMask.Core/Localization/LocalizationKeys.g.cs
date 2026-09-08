@@ -35,7 +35,7 @@ public static class Loc
             public static class Tool
             {
                 public const string Title = "Main.MenuBar.Tool.Title";
-                public const string SelectAllObject = "Main.MenuBar.Tool.SelectAllObject";
+                public const string DetectAllObjects = "Main.MenuBar.Tool.DetectAllObjects";
             }
         }
         public static class SourceTexture
@@ -49,10 +49,6 @@ public static class Loc
         public const string LoadImage = "Main.LoadImage";
         public const string LoadUVImage = "Main.LoadUVImage";
         public const string GenerateMask = "Main.GenerateMask";
-    }
-    public static class Warning
-    {
-        public const string SelectAllObjectsWithoutUV = "Warning.SelectAllObjectsWithoutUV";
     }
     public static class SelectionArea
     {
