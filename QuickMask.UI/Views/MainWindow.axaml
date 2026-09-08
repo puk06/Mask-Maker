@@ -1,6 +1,7 @@
 <sukiUi:SukiWindow xmlns="https://github.com/avaloniaui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:vm="using:QuickMask.UI.ViewModels"
+	xmlns:controls="using:QuickMask.UI.Controls"
 	xmlns:sukiUi="clr-namespace:SukiUI.Controls;assembly=SukiUI"
 	xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
 	xmlns:loc="using:QuickMask.UI.Localization"
@@ -34,9 +35,11 @@
 						<Grid RowDefinitions="Auto,*">
 							<TextBlock Text="{Binding [Main.SourceTexture.Label], Source={x:Static loc:Localizer.Instance}}" Foreground="#F5F5F5" FontSize="12" FontWeight="Bold" />
 
-							<Border Grid.Row="1" Background="#121212" CornerRadius="6" Margin="0,12,0,0" PointerPressed="SourcePointerPressed">
-								<Image Source="{Binding SourcePreview}" Stretch="Uniform" />
-							</Border>
+							<controls:AspectRatioBox Grid.Row="1" Ratio="{Binding PreviewRatio}" Margin="0,12,0,0">
+								<Border Background="#121212" CornerRadius="6" PointerPressed="PreviewPointerPressed">
+									<Image Source="{Binding SourcePreview}" Stretch="Uniform" />
+								</Border>
+							</controls:AspectRatioBox>
 						</Grid>
 					</sukiUi:GlassCard>
 
@@ -52,9 +55,11 @@
 								</StackPanel>
 							</Grid>
 
-							<Border Grid.Row="1" Background="#121212" CornerRadius="6" Margin="0,12,0,0">
-								<Image Source="{Binding MaskPreview}" Stretch="Uniform" />
-							</Border>
+							<controls:AspectRatioBox Grid.Row="1" Ratio="{Binding PreviewRatio}" Margin="0,12,0,0">
+								<Border Background="#121212" CornerRadius="6" PointerPressed="PreviewPointerPressed">
+									<Image Source="{Binding MaskPreview}" Stretch="Uniform" />
+								</Border>
+							</controls:AspectRatioBox>
 						</Grid>
 					</sukiUi:GlassCard>
 				</Grid>

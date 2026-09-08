@@ -17,7 +17,7 @@ public partial class MainWindow : SukiWindow
         InitializeComponent();
     }
 
-    private void SourcePointerPressed(object? sender, PointerPressedEventArgs e)
+    private void PreviewPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (DataContext is not MainViewModel viewModel || sender is not Control control)
             return;

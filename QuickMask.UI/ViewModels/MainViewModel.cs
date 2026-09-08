@@ -25,6 +25,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
     [Reactive] public partial Bitmap? SourcePreview { get; private set; }
     [Reactive] public partial Bitmap? MaskPreview { get; private set; }
+    [Reactive] public partial double PreviewRatio { get; private set; } = 1.0;
     public ObservableCollection<SelectionAreaViewModel> SelectionAreas { get; } = [];
 
     [Reactive] public partial string WindowTitle { get; set; } = string.Empty;
@@ -264,6 +265,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
         using var source = SKBitmap.Decode(path);
         if (source == null) return;
+
+        PreviewRatio = (double)source.Width / Math.Max(1, source.Height);
 
         var scale = Math.Min(1.0, PreviewMaxSize / (double)Math.Max(source.Width, source.Height));
         var width = Math.Max(1, (int)Math.Round(source.Width * scale));
