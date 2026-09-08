@@ -35,6 +35,4 @@ public static class BitArrayUtils
         inverse.Not();
         target.And(inverse);
     }
-
-    public static void Reverse(ref BitArray bitArray) => bitArray.Not();
 }

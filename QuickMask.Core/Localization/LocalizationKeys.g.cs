@@ -95,5 +95,11 @@ public static class Loc
             public const string InvalidSelectionPoint = "Error.ImageSelector.InvalidSelectionPoint";
             public const string PointNotSelectable = "Error.ImageSelector.PointNotSelectable";
         }
+        public static class MaskGenerator
+        {
+            public const string InvalidMaskDimensions = "Error.MaskGenerator.InvalidMaskDimensions";
+            public const string MaskGenerationFailed = "Error.MaskGenerator.MaskGenerationFailed";
+            public const string MaskSaveFailed = "Error.MaskGenerator.MaskSaveFailed";
+        }
     }
 }

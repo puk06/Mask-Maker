@@ -45,5 +45,8 @@
 	"Error.ImageSelector.GuideImageSizeMismatch": "UV画像の寸法が一致しません。UV画像とテクスチャ画像の寸法が同じであることを確認してください。",
 	"Error.ImageSelector.NotProperlyInitialized": "画像選択ツールが正しく初期化されていません。画像を読み込んでから再度お試しください。",
 	"Error.ImageSelector.InvalidSelectionPoint": "無効な選択ポイントです。画像内の有効な位置をクリックしてください。",
-	"Error.ImageSelector.PointNotSelectable": "選択したポイントは選択可能なオブジェクトの一部ではありません。画像内の有効な位置をクリックしてください。"
+	"Error.ImageSelector.PointNotSelectable": "選択したポイントは選択可能なオブジェクトの一部ではありません。画像内の有効な位置をクリックしてください。",
+	"Error.MaskGenerator.InvalidMaskDimensions": "マスクの寸法が一致しません。マスクの幅と高さが正しいことを確認してください。",
+	"Error.MaskGenerator.MaskGenerationFailed": "マスクの生成に失敗しました。",
+	"Error.MaskGenerator.MaskSaveFailed": "マスクの保存に失敗しました。出力先のパスが正しいことを確認してください。"
 }
