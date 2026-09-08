@@ -35,6 +35,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     [Reactive] public partial bool IsOverlayPreview { get; set; } = true;
 
     public IReactiveCommand OpenImageCommand { get; }
+    public IReactiveCommand UnloadImageCommand { get; }
     public IReactiveCommand OpenUvImageCommand { get; }
     public IReactiveCommand UnloadUvImageCommand { get; }
     public IReactiveCommand SaveMaskCommand { get; }
@@ -46,6 +47,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         _dialogs = dialogs;
 
         OpenImageCommand = ReactiveCommand.CreateFromTask(OpenImageAsync);
+        UnloadImageCommand = ReactiveCommand.Create(UnloadImage);
         OpenUvImageCommand = ReactiveCommand.CreateFromTask(OpenUvImageAsync);
         UnloadUvImageCommand = ReactiveCommand.Create(UnloadUvImage);
         SaveMaskCommand = ReactiveCommand.CreateFromTask(SaveMaskAsync);
@@ -81,6 +83,22 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         SetSourcePreview(path);
         RefreshSelectionState();
     }
+    private void UnloadImage()
+    {
+        _maker.UnloadImage();
+        SelectionAreas.Clear();
+
+        SourcePreview?.Dispose();
+        SourcePreview = null;
+
+        _sourcePreview?.Dispose();
+        _sourcePreview = null;
+
+        MaskPreview?.Dispose();
+        MaskPreview = null;
+
+        UpdateWindowTitle();
+    }
 
     private async Task OpenUvImageAsync()
     {
@@ -93,8 +111,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     {
         var result = await _maker.LoadUVGuideImage(path);
         if (result.IsError) ShowStatus(Localizer.Instance[result.FirstError.Description]);
+        UpdateWindowTitle();
     }
-
     public void UnloadUvImage()
     {
         _maker.UnloadUVGuideImage();

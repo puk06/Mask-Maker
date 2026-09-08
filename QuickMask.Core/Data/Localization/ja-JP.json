@@ -7,8 +7,11 @@
 	"WindowTitle.UvGuideNotLoaded": "UV画像未読み込み",
 	"WindowTitle.SelectionAreaCount": "{0}個の選択エリア (総選択ピクセル数: {1})",
 
-	"Main.MenuBar.UVImage.Title": "UV画像",
-	"Main.MenuBar.UVImage.UnloadUV": "UV画像の読み込みを解除する",
+	"Main.MenuBar.File.Title": "ファイル",
+	"Main.MenuBar.File.OpenImage": "画像を読み込む",
+	"Main.MenuBar.File.UnloadImage": "画像の読み込みを解除する",
+	"Main.MenuBar.File.OpenUVImage": "UVガイド画像を読み込む",
+	"Main.MenuBar.File.UnloadUVImage": "UVガイド画像の読み込みを解除する",
 
 	"Main.MenuBar.Tool.Title": "ツール",
 	"Main.MenuBar.Tool.DetectAllObjects": "全オブジェクトを自動検出",
@@ -17,9 +20,6 @@
 	"Main.MaskTexture.Label": "マスク画像",
 	"Main.MaskTexture.PreviewMode.Mask": "マスク",
 	"Main.MaskTexture.PreviewMode.Overlay": "オーバーレイ",
-
-	"Main.LoadImage": "画像を読み込む",
-	"Main.LoadUVImage": "UV画像を読み込む",
 
 	"SelectionArea.Title": "選択エリア",
 	"SelectionArea.Description": "順番がマスク結果に反映されます",

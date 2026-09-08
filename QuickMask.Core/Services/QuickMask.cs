@@ -38,6 +38,21 @@ public sealed class QuickMask : IDisposable
 
         return Result.Success;
     }
+    public void UnloadImage()
+    {
+        DisposeImageSelector(ref _imageSelector);
+
+        Image?.Dispose();
+        Image = null;
+
+        Selections.Clear();
+
+        UVImage?.Dispose();
+        UVImage = null;
+
+        _merged = null;
+    }
+
     public async Task<ErrorOr<Success>> LoadUVGuideImage(string filePath)
     {
         if (Image == null) return Error.Failure(description: Loc.Error.NoImageLoaded);

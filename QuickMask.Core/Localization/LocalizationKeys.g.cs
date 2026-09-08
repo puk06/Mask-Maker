@@ -27,10 +27,13 @@ public static class Loc
     {
         public static class MenuBar
         {
-            public static class UVImage
+            public static class File
             {
-                public const string Title = "Main.MenuBar.UVImage.Title";
-                public const string UnloadUV = "Main.MenuBar.UVImage.UnloadUV";
+                public const string Title = "Main.MenuBar.File.Title";
+                public const string OpenImage = "Main.MenuBar.File.OpenImage";
+                public const string UnloadImage = "Main.MenuBar.File.UnloadImage";
+                public const string OpenUVImage = "Main.MenuBar.File.OpenUVImage";
+                public const string UnloadUVImage = "Main.MenuBar.File.UnloadUVImage";
             }
             public static class Tool
             {
@@ -51,8 +54,6 @@ public static class Loc
                 public const string Overlay = "Main.MaskTexture.PreviewMode.Overlay";
             }
         }
-        public const string LoadImage = "Main.LoadImage";
-        public const string LoadUVImage = "Main.LoadUVImage";
         public const string GenerateMask = "Main.GenerateMask";
     }
     public static class SelectionArea
