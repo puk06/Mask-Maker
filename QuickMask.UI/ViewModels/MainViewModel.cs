@@ -33,6 +33,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     [Reactive] public partial int BackgroundY { get; set; }
     [Reactive] public partial string Status { get; set; } = string.Empty;
     [Reactive] public partial bool IsOverlayPreview { get; set; } = true;
+    [Reactive] public partial decimal? UvExtraPixels { get; set; } = 0;
+    [Reactive] public partial bool UvImageLoaded { get; private set; }
 
     public IReactiveCommand OpenImageCommand { get; }
     public IReactiveCommand UnloadImageCommand { get; }
@@ -80,6 +82,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         }
 
         SelectionAreas.Clear();
+        UvImageLoaded = _maker.UVImageLoaded;
         SetSourcePreview(path);
         RefreshSelectionState();
     }
@@ -87,6 +90,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     {
         _maker.UnloadImage();
         SelectionAreas.Clear();
+        UvImageLoaded = _maker.UVImageLoaded;
 
         SourcePreview?.Dispose();
         SourcePreview = null;
@@ -111,11 +115,14 @@ public partial class MainViewModel : ReactiveObject, IDisposable
     {
         var result = await _maker.LoadUVGuideImage(path);
         if (result.IsError) ShowStatus(Localizer.Instance[result.FirstError.Description]);
+
+        UvImageLoaded = _maker.UVImageLoaded;
         UpdateWindowTitle();
     }
     public void UnloadUvImage()
     {
         _maker.UnloadUVGuideImage();
+        UvImageLoaded = _maker.UVImageLoaded;
         UpdateWindowTitle();
     }
 
@@ -125,6 +132,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         if (point is null) return;
 
         _maker.BackgroundPoint = new Point(BackgroundX, BackgroundY);
+        _maker.UvExtraPixels = GetUvExtraPixels();
+
         var result = _maker.Select(point.Value, erase: erase);
         if (result.IsError)
         {
@@ -200,6 +209,7 @@ public partial class MainViewModel : ReactiveObject, IDisposable
         }
 
         _maker.BackgroundPoint = new Point(BackgroundX, BackgroundY);
+        _maker.UvExtraPixels = GetUvExtraPixels();
 
         var result = _maker.SelectAllObjects();
         if (result.IsError)
@@ -221,6 +231,8 @@ public partial class MainViewModel : ReactiveObject, IDisposable
 
         RefreshSelectionState();
     }
+
+    private int GetUvExtraPixels() => (int)Math.Clamp(Math.Round(UvExtraPixels ?? 0), 0, 256);
 
     private void AddLatestSelection() => AddLatestSelections(1);
 

@@ -54,6 +54,11 @@ public static class Loc
                 public const string Overlay = "Main.MaskTexture.PreviewMode.Overlay";
             }
         }
+        public static class UVExtraPixels
+        {
+            public const string Label = "Main.UVExtraPixels.Label";
+            public const string Description = "Main.UVExtraPixels.Description";
+        }
         public const string GenerateMask = "Main.GenerateMask";
     }
     public static class SelectionArea

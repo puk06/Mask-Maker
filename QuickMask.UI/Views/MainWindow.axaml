@@ -73,8 +73,20 @@
 				</sukiUi:GlassCard>
 			</Grid>
 
-			<Grid Grid.Column="1" RowDefinitions="*,Auto,Auto" RowSpacing="14">
+			<Grid Grid.Column="1" RowDefinitions="Auto,*,Auto,Auto" RowSpacing="14">
 				<sukiUi:GlassCard Grid.Row="0">
+					<Grid RowDefinitions="Auto,Auto" RowSpacing="10">
+						<Grid RowDefinitions="Auto,Auto">
+							<TextBlock Text="{Binding [Main.UVExtraPixels.Label], Source={x:Static loc:Localizer.Instance}}" FontSize="12" FontWeight="Bold" Foreground="#F5F5F5" />
+							<TextBlock Grid.Row="1" Text="{Binding [Main.UVExtraPixels.Description], Source={x:Static loc:Localizer.Instance}}" FontSize="11" Foreground="#909090" TextWrapping="Wrap" />
+						</Grid>
+
+						<NumericUpDown Grid.Row="1" Value="{Binding UvExtraPixels}" Minimum="0" Maximum="256" Increment="1" FormatString="0" PlaceholderText="0"
+									   IsEnabled="{Binding UvImageLoaded}" HorizontalAlignment="Stretch" />
+					</Grid>
+				</sukiUi:GlassCard>
+
+				<sukiUi:GlassCard Grid.Row="1">
 					<Grid RowDefinitions="Auto,*" RowSpacing="10">
 						<Grid ColumnDefinitions="*,Auto">
 							<Grid RowDefinitions="Auto,Auto">
@@ -123,8 +135,8 @@
 					</Grid>
 				</sukiUi:GlassCard>
 
-				<Button Grid.Row="1" Classes="Outlined" Content="{Binding [SelectionArea.ClearSelection], Source={x:Static loc:Localizer.Instance}}" HorizontalAlignment="Stretch" Command="{Binding ClearSelectionsCommand}" />
-				<Button Grid.Row="2" Classes="Flat Large" Content="{Binding [Main.GenerateMask], Source={x:Static loc:Localizer.Instance}}" HorizontalAlignment="Stretch" Command="{Binding SaveMaskCommand}" />
+				<Button Grid.Row="2" Classes="Outlined" Content="{Binding [SelectionArea.ClearSelection], Source={x:Static loc:Localizer.Instance}}" HorizontalAlignment="Stretch" Command="{Binding ClearSelectionsCommand}" />
+				<Button Grid.Row="3" Classes="Flat Large" Content="{Binding [Main.GenerateMask], Source={x:Static loc:Localizer.Instance}}" HorizontalAlignment="Stretch" Command="{Binding SaveMaskCommand}" />
 			</Grid>
 		</Grid>
 	</DockPanel>

@@ -21,6 +21,9 @@
 	"Main.MaskTexture.PreviewMode.Mask": "マスク",
 	"Main.MaskTexture.PreviewMode.Overlay": "オーバーレイ",
 
+	"Main.UVExtraPixels.Label": "UV選択の余分ピクセル",
+	"Main.UVExtraPixels.Description": "UVガイド画像を使用した選択で、選択範囲の外周を指定したピクセル数だけ広げます。",
+
 	"SelectionArea.Title": "選択エリア",
 	"SelectionArea.Description": "順番がマスク結果に反映されます",
 

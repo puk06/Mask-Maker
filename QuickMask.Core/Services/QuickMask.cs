@@ -15,6 +15,9 @@ public sealed class QuickMask : IDisposable
 
     public Point BackgroundPoint { get; set; }
 
+    /// <summary>Expands selections made with a UV guide outward by this many pixels.</summary>
+    public int UvExtraPixels { get; set; }
+
     private ImageSelector? _imageSelector = null;
     private PixelMask? _merged;
 
@@ -92,8 +95,10 @@ public sealed class QuickMask : IDisposable
         if (Image == null) return Error.Failure(description: Loc.Error.NoImageLoaded);
 
         var selector = _imageSelector ??= new ImageSelector(Image, guideImage: UVImage);
+        selector.UvExtraPixels = UvExtraPixels;
+
         var initializeResult = selector.Initialize(BackgroundPoint);
-        if (initializeResult.IsError) return initializeResult;
+        if (initializeResult.IsError) return Error.Failure(description: initializeResult.FirstError.Description);
 
         var result = selector.Select(point);
         if (result.IsError) return Error.Failure(description: result.FirstError.Description);
@@ -111,6 +116,8 @@ public sealed class QuickMask : IDisposable
         if (Image == null) return Error.Failure(description: Loc.Error.NoImageLoaded);
 
         var selector = _imageSelector ??= new ImageSelector(Image, guideImage: UVImage);
+        selector.UvExtraPixels = UvExtraPixels;
+
         var initializeResult = selector.Initialize(BackgroundPoint);
         if (initializeResult.IsError) return Error.Failure(description: initializeResult.FirstError.Description);
 
